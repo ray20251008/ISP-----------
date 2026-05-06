@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISP 診斷分析儀表板</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#6366F1', // 紫色主題
+                        brandHover: '#4F46E5'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #f8fafc; /* 淺灰色背景 */
+        }
+        
+        /* 可編輯文字區域的樣式 */
+        .editable-field {
+            width: 100%;
+            background: transparent;
+            border: 1px dashed transparent;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .editable-field:hover {
+            border-color: #cbd5e1; /* hover 時顯示虛線框 */
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .editable-field:focus {
+            outline: none;
+            border-style: solid;
+            border-color: #6366f1; /* 聚焦時變成紫色實線框 */
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        /* 隱藏卷軸，讓畫面更乾淨 */
+        textarea::-webkit-scrollbar {
+            width: 6px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+            // State Management: 使用者列表與當前使用者
+            const [users] = useState(['曾宇形', '林育營']);
+            const [activeUser, setActiveUser] = useState('曾宇形');
+            
+            // State Management: 卡片資料
+            const [cards, setCards] = useState([
+                {
+                    id: '1',
+                    user: '曾宇形',
+                    title: '支持目標1-1 在情境中能主動表達自己的需求(烹飪課、社區活動)',
+                    domain: '保護與倡議',
+                    diagnosis: '目前表達意願較低，需透過圖卡輔助。\n偶爾能以單字表達，但句型不完整。',
+                    strategy: '- 使用視覺圖卡，引導宇彤透過「圖卡」表達『我想要』。\n- 鼓勵其配合簡單口語（如：我要水）表達需求。\n- 將需求拆解為「兩個字一組」的短語，逐步提升開口意願。',
+                    standard: '連續6個月達成 80%',
+                    isPassed: false,
+                    passCount: 5,
+                    failCount: 2,
+                    unrecordedCount: 1,
+                    monthlyNote: ''
+                },
+                {
+                    id: '2',
+                    user: '林育營',
+                    title: '支持目標1-1 參與多元作業活動，並能獨立完成作業流程',
+                    domain: '作業活動',
+                    diagnosis: '秤重精細動作不穩，容易掉落。\n對於換站工作偶有抗拒，需口頭提示與部分協助。',
+                    strategy: '- 引導先聽取支持者當天的指示（如：秤糖果、包裝或貼標）。\n- 確認任務後，自行準備所需工具（如：包裝袋、椅子、貼紙）。\n- 作業完成後，自行將剩餘材料與工具歸位放好。',
+                    standard: '每10次達成8次且持續6個月',
+                    isPassed: true,
+                    passCount: 8,
+                    failCount: 0,
+                    unrecordedCount: 2,
+                    monthlyNote: ''
+                }
+            ]);
+
+            // 過濾出當前使用者的卡片
+            const activeCards = cards.filter(c => c.user === activeUser);
+
+            // 新增卡片功能
+            const handleAddCard = () => {
+                const newCard = {
+                    id: Date.now().toString(),
+                    user: activeUser,
+                    title: '點擊輸入新目標標題',
+                    domain: '點擊輸入領域',
+                    diagnosis: '點擊輸入執行狀況診斷...',
+                    strategy: '點擊輸入核心支持策略...',
+                    standard: '點擊輸入通過標準...',
+                    isPassed: false,
+                    passCount: 0,
+                    failCount: 0,
+                    unrecordedCount: 0,
+                    monthlyNote: ''
+                };
+                setCards([newCard, ...cards]);
+            };
+
+            // 更新卡片內容功能 (模擬 State Management 即時更新)
+            const updateCard = (id, field, value) => {
+                setCards(cards.map(c => c.id === id ? { ...c, [field]: value } : c));
+            };
+
+            // 刪除卡片功能
+            const deleteCard = (id) => {
+                if(window.confirm('確定要刪除這張卡片嗎？')) {
+                    setCards(cards.filter(c => c.id !== id));
+                }
+            };
+
+            // 儲存修改功能
+            const saveChanges = () => {
+                alert('所有修改已成功儲存！\n(已更新 React State)');
+            };
+
+            // 切換達標/未達標狀態
+            const toggleStatus = (id) => {
+                setCards(cards.map(c => c.id === id ? { ...c, isPassed: !c.isPassed } : c));
+            };
+
+            // 計算達成率
+            const calculateRate = (pass, fail, unrecorded) => {
+                const p = Number(pass) || 0;
+                const f = Number(fail) || 0;
+                const u = Number(unrecorded) || 0;
+                const total = p + f + u;
+                if (total === 0) return 0;
+                return Math.round((p / total) * 100);
+            };
+
+            return (
+                <div className="min-h-screen pb-16">
+                    {/* 頂部導航列與大標題 */}
+                    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold shadow-sm">
+                                    ISP
+                                </div>
+                                <h1 className="text-xl font-bold text-gray-800 tracking-tight">ISP Dashboard</h1>
+                            </div>
+                            <button 
+                                onClick={handleAddCard}
+                                className="bg-brand hover:bg-brandHover text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                                </svg>
+                                新增目標卡片
+                            </button>
+                        </div>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                        {/* 橫向切換按鈕 (切換不同學生) */}
+                        <div className="flex justify-center mb-8">
+                            <div className="bg-gray-200 p-1.5 rounded-xl inline-flex gap-1 shadow-inner">
+                                {users.map(u => (
+                                    <button
+                                        key={u}
+                                        onClick={() => setActiveUser(u)}
+                                        className={`px-8 py-2.5 rounded-lg font-bold transition-all duration-200 ${
+                                            activeUser === u 
+                                            ? 'bg-white text-brand shadow-sm' 
+                                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        {u}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 卡片列表 (兩欄式佈局) */}
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            {activeCards.map(card => (
+                                <div key={card.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 flex flex-col hover:shadow-md transition-shadow relative group">
+                                    
+                                    {/* 卡片標題區 */}
+                                    <div className="flex justify-between items-start mb-6 gap-6">
+                                        <div className="flex-1">
+                                            {/* 領域標籤 (可編輯) */}
+                                            <input 
+                                                type="text" 
+                                                value={card.domain} 
+                                                onChange={(e) => updateCard(card.id, 'domain', e.target.value)}
+                                                className="editable-field text-xs font-bold text-brand uppercase tracking-wider mb-2 px-2 py-1 -ml-2 w-32 bg-indigo-50/50 rounded"
+                                                placeholder="領域標籤"
+                                            />
+                                            {/* 標題 (可編輯) */}
+                                            <textarea 
+                                                value={card.title}
+                                                onChange={(e) => updateCard(card.id, 'title', e.target.value)}
+                                                className="editable-field text-xl sm:text-2xl font-bold text-gray-800 leading-snug px-2 py-1 -ml-2"
+                                                rows="2"
+                                                placeholder="請輸入目標標題"
+                                            />
+                                        </div>
+                                        
+                                        {/* 右上角狀態標籤 */}
+                                        <button 
+                                            onClick={() => toggleStatus(card.id)}
+                                            className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold border-2 cursor-pointer transition-all ${
+                                                card.isPassed 
+                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100' 
+                                                : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                                            }`}
+                                        >
+                                            {card.isPassed ? '✅ 達標' : '🚨 未達標'}
+                                        </button>
+                                    </div>
+
+                                    {/* 兩欄式內容區：執行狀況診斷 vs 核心支持策略 */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 mb-6">
+                                        
+                                        {/* 左欄：執行狀況診斷 */}
+                                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 flex flex-col transition-colors hover:bg-slate-100/50">
+                                            <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                                                <span className="text-lg">🔍</span> 執行狀況診斷
+                                            </h3>
+                                            <textarea 
+                                                value={card.diagnosis}
+                                                onChange={(e) => updateCard(card.id, 'diagnosis', e.target.value)}
+                                                className="editable-field text-sm text-slate-600 leading-relaxed flex-1 p-2 -ml-2"
+                                                rows="5"
+                                                placeholder="點擊輸入執行狀況診斷..."
+                                            />
+                                        </div>
+
+                                        {/* 右欄：核心支持策略 */}
+                                        <div className="bg-indigo-50/60 rounded-xl p-5 border border-indigo-100 flex flex-col transition-colors hover:bg-indigo-50">
+                                            <h3 className="text-sm font-bold text-brand mb-3 flex items-center gap-2">
+                                                <span className="text-lg">🎯</span> 核心支持策略
+                                            </h3>
+                                            <textarea 
+                                                value={card.strategy}
+                                                onChange={(e) => updateCard(card.id, 'strategy', e.target.value)}
+                                                className="editable-field text-sm text-indigo-900 leading-relaxed flex-1 p-2 -ml-2"
+                                                rows="5"
+                                                placeholder="點擊輸入核心支持策略..."
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* 每月追蹤區塊 */}
+                                    <div className="bg-blue-50/40 rounded-xl p-5 border border-blue-100 mb-6 flex flex-col">
+                                        <h3 className="text-sm font-bold text-blue-700 mb-4 flex items-center gap-2">
+                                            <span className="text-lg">📊</span> 每月追蹤 (Monthly Tracking)
+                                        </h3>
+                                        
+                                        {/* 統計與數值輸入 */}
+                                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 mb-5 bg-white p-4 rounded-lg border border-blue-50 shadow-sm">
+                                            <div className="flex-1 min-w-[90px]">
+                                                <label className="block text-xs font-bold text-gray-500 mb-1">已達成次數</label>
+                                                <input 
+                                                    type="number" 
+                                                    min="0"
+                                                    value={card.passCount !== undefined ? card.passCount : 0}
+                                                    onChange={(e) => updateCard(card.id, 'passCount', e.target.value)}
+                                                    className="editable-field text-sm font-bold text-emerald-600 p-1.5 w-full bg-emerald-50/30"
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-[90px]">
+                                                <label className="block text-xs font-bold text-gray-500 mb-1">未達成次數</label>
+                                                <input 
+                                                    type="number" 
+                                                    min="0"
+                                                    value={card.failCount !== undefined ? card.failCount : 0}
+                                                    onChange={(e) => updateCard(card.id, 'failCount', e.target.value)}
+                                                    className="editable-field text-sm font-bold text-rose-600 p-1.5 w-full bg-rose-50/30"
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-[90px]">
+                                                <label className="block text-xs font-bold text-gray-500 mb-1">未紀錄次數</label>
+                                                <input 
+                                                    type="number" 
+                                                    min="0"
+                                                    value={card.unrecordedCount !== undefined ? card.unrecordedCount : 0}
+                                                    onChange={(e) => updateCard(card.id, 'unrecordedCount', e.target.value)}
+                                                    className="editable-field text-sm font-bold text-gray-500 p-1.5 w-full bg-gray-50/50"
+                                                />
+                                            </div>
+                                            
+                                            {/* 達成率計算顯示 */}
+                                            <div className="flex-none px-4 py-2 bg-blue-100 rounded-lg text-center min-w-[100px]">
+                                                <div className="text-xs text-blue-600 font-bold mb-1">每月達成率</div>
+                                                <div className="text-xl font-black text-blue-800">
+                                                    {calculateRate(card.passCount, card.failCount, card.unrecordedCount)}%
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* 每月執行說明 */}
+                                        <div className="flex flex-col flex-1">
+                                            <label className="text-xs font-bold text-blue-600 mb-2">每月執行說明</label>
+                                            <textarea
+                                                value={card.monthlyNote || ''}
+                                                onChange={(e) => updateCard(card.id, 'monthlyNote', e.target.value)}
+                                                className="editable-field text-sm text-gray-700 p-3 bg-white border border-blue-50 shadow-sm flex-1"
+                                                rows="3"
+                                                placeholder="請輸入本月觀察到的學生行為與進度..."
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* 通過標準 */}
+                                    <div className="bg-orange-50/50 rounded-xl p-4 border border-orange-100 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+                                        <h3 className="text-sm font-bold text-orange-600 flex items-center gap-2 shrink-0 px-2">
+                                            <span className="text-lg">⭐</span> 通過標準
+                                        </h3>
+                                        <textarea 
+                                            value={card.standard}
+                                            onChange={(e) => updateCard(card.id, 'standard', e.target.value)}
+                                            className="editable-field text-sm text-gray-700 p-2 sm:py-1 w-full"
+                                            rows="1"
+                                            placeholder="點擊輸入通過標準..."
+                                        />
+                                    </div>
+
+                                    {/* 右下角按鈕操作區 */}
+                                    <div className="flex justify-end gap-3 pt-5 border-t border-gray-100 mt-auto">
+                                        <button 
+                                            onClick={() => deleteCard(card.id)}
+                                            className="px-5 py-2 text-sm font-bold text-rose-500 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100"
+                                        >
+                                            刪除卡片
+                                        </button>
+                                        <button 
+                                            onClick={saveChanges}
+                                            className="px-6 py-2 text-sm font-bold bg-slate-800 hover:bg-slate-900 text-white rounded-lg transition-colors shadow-sm"
+                                        >
+                                            儲存修改
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* 空狀態顯示 */}
+                            {activeCards.length === 0 && (
+                                <div className="col-span-1 xl:col-span-2 flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+                                    <div className="text-5xl mb-4 opacity-50">📭</div>
+                                    <h3 className="text-lg font-bold text-gray-700 mb-2">目前沒有任何目標卡片</h3>
+                                    <p className="text-gray-500 mb-6 text-sm">此學生的目標清單為空，請新增一張卡片開始記錄。</p>
+                                    <button 
+                                        onClick={handleAddCard}
+                                        className="bg-brand hover:bg-brandHover text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
+                                    >
+                                        + 新增目標卡片
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

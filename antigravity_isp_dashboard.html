@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIGRAVITY ISP Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="isp_styles.css">
+</head>
+<body>
+<header>
+        <h1>ANTIGRAVITY ISP</h1>
+        <div class="header-actions">
+            <div class="tabs" id="userTabs">
+                <!-- Tabs injected by JS -->
+            </div>
+            <button class="btn-add-goal" onclick="openModal()">
+                <span>＋</span> 新增 ISP 目標
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="cards-grid" id="cardsContainer">
+            <!-- Cards injected by JS -->
+        </div>
+
+        <div class="evaluation-section">
+            <h2 style="margin-bottom: 25px; font-size: 24px; font-weight: 800; color: #1a202c;">期中/期末評估與統整</h2>
+            <div class="evaluation-grid">
+                <div>
+                    <label class="section-title" style="display: block; margin-top: 0; margin-bottom: 12px;">期中修改</label>
+                    <textarea id="midTermText" placeholder="請輸入期中修改內容..." oninput="saveEvaluation()"></textarea>
+                </div>
+                <div>
+                    <label class="section-title" style="display: block; margin-top: 0; margin-bottom: 12px;">期末總結</label>
+                    <textarea id="endTermText" placeholder="請輸入期末總結內容..." oninput="saveEvaluation()"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit/Add Modal -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">編輯 ISP 目標</h2>
+                <button class="btn-close-icon" onclick="closeModal()">✕</button>
+            </div>
+            
+            <div class="form-group">
+                <label>支持領域</label>
+                <input type="text" id="editDomain" placeholder="例如：生活自理、社會參與">
+            </div>
+            <div class="form-group">
+                <label>支持目標</label>
+                <input type="text" id="editTarget" placeholder="具體的目標名稱">
+            </div>
+            <div class="form-group">
+                <label>支持策略</label>
+                <textarea id="editStrategy" rows="4" placeholder="達到目標的方法與策略"></textarea>
+            </div>
+            <div class="form-group">
+                <label>通過標準</label>
+                <textarea id="editStandard" rows="3" placeholder="評估達標的具體標準"></textarea>
+            </div>
+            <div class="form-group">
+                <label>目前狀態</label>
+                <select id="editStatus">
+                    <option value="未達標">未達標</option>
+                    <option value="達標">達標</option>
+                    <option value="未紀錄">未紀錄</option>
+                </select>
+            </div>
+            
+            <h3 style="margin: 35px 0 20px; font-size: 18px; font-weight: 800; border-bottom: 2px solid #edf2f7; padding-bottom: 10px;">每月執行紀錄</h3>
+            <div class="month-inputs" id="monthInputsContainer">
+                <!-- Month inputs injected by JS -->
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn btn-save" onclick="saveChanges()">儲存變更</button>
+            </div>
+        </div>
+    </div>
+    <!-- 1. 資料邏輯分離：先載入預設資料 -->
+    <script src="isp_data.js"></script>
+    <!-- 2. UI 操作與 LocalStorage 邏輯分離：再載入應用程式邏輯 -->
+    <script src="isp_app.js"></script>
+</body>
+</html>

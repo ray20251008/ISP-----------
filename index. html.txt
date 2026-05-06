@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班會互動大富翁：老師自訂版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0fdf4;
+        }
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 8px;
+            aspect-ratio: 1 / 1;
+        }
+        .cell {
+            border: 2px solid #16a34a;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            text-align: center;
+            background: white;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 0.75rem;
+            min-height: 60px;
+        }
+        .cell.active {
+            background: #dcfce7;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(22, 163, 74, 0.4);
+            border-color: #15803d;
+            z-index: 10;
+        }
+        .player-token {
+            width: 24px;
+            height: 24px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: absolute;
+            z-index: 20;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .dice-rolling {
+            animation: shake 0.2s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-1px, -2px) rotate(-1deg); }
+            40% { transform: translate(-3px, 0px) rotate(1deg); }
+            60% { transform: translate(3px, 2px) rotate(0deg); }
+            80% { transform: translate(1px, -1px) rotate(1deg); }
+            100% { transform: translate(-1px, 2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body class="p-2 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-green-600">
+        <!-- Header -->
+        <div class="bg-green-600 p-4 text-white flex justify-between items-center">
+            <div class="text-left">
+                <h1 class="text-xl md:text-2xl font-bold">🌟 班會生活大富翁</h1>
+                <p class="text-xs opacity-90">所有題目皆可設定選項與正確答案</p>
+            </div>
+            <button onclick="toggleSettings()" class="bg-green-500 hover:bg-green-400 px-4 py-2 rounded-xl font-bold text-sm shadow transition-colors">
+                ⚙️ 設定題目
+            </button>
+        </div>
+
+        <div class="p-4 flex flex-col md:flex-row gap-6">
+            <!-- 左側棋盤 -->
+            <div class="flex-1">
+                <div id="gameBoard" class="board-grid bg-green-50 p-2 rounded-xl relative">
+                    <div id="player" class="player-token"></div>
+                </div>
+            </div>
+
+            <!-- 右側控制區 -->
+            <div class="w-full md:w-64 flex flex-col gap-4">
+                <div class="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200 text-center">
+                    <h2 class="font-bold text-blue-800 mb-1">當前位置</h2>
+                    <p id="statusText" class="text-gray-700 font-bold">起點</p>
+                </div>
+
+                <button id="rollBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-6 rounded-2xl shadow-lg transition-all active:scale-95 text-xl flex flex-col items-center gap-1">
+                    <span>🎲 擲骰子</span>
+                    <span id="diceResult" class="text-sm font-normal">前進步數？</span>
+                </button>
+
+                <div class="bg-gray-100 p-4 rounded-2xl">
+                    <h3 class="font-bold text-gray-800 mb-1 text-sm">快速說明：</h3>
+                    <ul class="text-[10px] text-gray-600 list-disc pl-4 space-y-1">
+                        <li>所有格子現在都是選擇題。</li>
+                        <li>回答正確：才能繼續停留。</li>
+                        <li>老師可隨時在設定中心修改題目與選項。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 任務 Modal -->
+    <div id="modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl scale-0 transition-transform duration-300" id="modal-container">
+            <div id="modalIcon" class="text-6xl mb-4 text-center">💡</div>
+            <h2 id="modalTitle" class="text-2xl font-bold text-center mb-2 text-green-700">任務標題</h2>
+            <p id="modalContent" class="text-gray-700 text-center mb-6 text-lg leading-relaxed font-bold">任務內容描述...</p>
+            <div id="modalOptions" class="grid grid-cols-1 gap-3"></div>
+            <button id="closeModal" class="hidden w-full mt-6 bg-blue-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg">確定並繼續</button>
+        </div>
+    </div>
+
+    <!-- 老師設定面板 -->
+    <div id="settings-panel" class="fixed inset-0 bg-white z-[100] hidden overflow-y-auto">
+        <div class="p-6 max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-white py-2 border-b">
+                <h2 class="text-2xl font-bold text-gray-800">⚙️ 大富翁題目設定中心</h2>
+                <button onclick="toggleSettings()" class="text-3xl">&times;</button>
+            </div>
+            
+            <div id="settings-list" class="space-y-6">
+                <!-- 由 JS 動態產生設定表單 -->
+            </div>
+
+            <div class="mt-10 mb-20 flex gap-4">
+                <button onclick="saveSettings()" class="flex-1 bg-green-600 text-white font-bold py-4 rounded-xl text-xl shadow-xl">儲存並重新開始遊戲</button>
+                <button onclick="toggleSettings()" class="flex-1 bg-gray-200 text-gray-700 font-bold py-4 rounded-xl text-xl">取消修改</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 核心資料
+        let boardData = [
+            { id: 0, title: "起點", type: "start", icon: "🚩", content: "準備好開始班會生活了嗎？" },
+            { id: 1, title: "小聲問好", type: "question", icon: "🤫", content: "看到老師或同學打招呼時，音量應該？", options: ["大聲喊叫", "音量放小", "假裝沒看到"], correct: 1 },
+            { id: 2, title: "口罩禮儀", type: "question", icon: "😷", content: "進入工廠時，口罩應該如何配戴？", options: ["露出口鼻", "完整遮住口鼻", "掛在耳朵上"], correct: 1 },
+            { id: 3, title: "依序排隊", type: "question", icon: "🚶", content: "打菜時有人插隊你該怎麼辦？", options: ["跟著插隊", "大聲吵架", "耐心提醒禮貌"], correct: 2 },
+            { id: 4, title: "準時下班", type: "question", icon: "⏰", content: "下班前最重要的事情是？", options: ["直接離開", "打卡並清空桌面", "大聲唱歌"], correct: 1 },
+            { id: 5, title: "15分原則", type: "question", icon: "🚽", content: "使用廁所的原則是？", options: ["滑手機", "不讓別人久等", "慢條斯理"], correct: 1 },
+            { id: 6, title: "包裹禮儀", type: "question", icon: "🎁", content: "使用過的垃圾應該？", options: ["隨便丟棄", "捲好再丟", "交給別人"], correct: 1 },
+            { id: 7, title: "桌面檢查", type: "question", icon: "🧽", content: "怎樣的桌面才算合格？", options: ["有油漬", "隨便擺放", "乾淨無油"], correct: 2 },
+            { id: 8, title: "安全教育", type: "question", icon: "🛡️", content: "遇到危險時第一時間要做什麼？", options: ["報警或呼救", "發呆", "拍照上傳"], correct: 0 },
+            { id: 9, title: "口號時間", type: "question", icon: "📘", content: "我們班會的口號是？", options: ["一起學習成長", "只要我喜歡", "大家來吵架"], correct: 0 },
+            { id: 10, title: "點心時間", type: "question", icon: "🍩", content: "吃完點心後垃圾要怎麼處理？", options: ["丟在桌子下", "帶回家", "分類回收"], correct: 2 },
+            { id: 11, title: "繪畫創作", type: "question", icon: "🎨", content: "哪種顏料最難清洗？", options: ["水彩", "油漆", "彩色筆"], correct: 1 },
+            { id: 12, title: "休息一下", type: "question", icon: "☕", content: "休息是為了走更長遠的路嗎？", options: ["是的", "不是", "不一定"], correct: 0 }
+        ];
+
+        const gridPos = [
+            {r:1, c:1}, {r:1, c:2}, {r:1, c:3}, {r:1, c:4}, {r:1, c:5},
+            {r:2, c:5}, {r:3, c:5}, {r:4, c:5}, {r:5, c:5},
+            {r:5, c:4}, {r:5, c:3}, {r:5, c:2}, {r:5, c:1}
+        ];
+
+        let currentPos = 0;
+        const boardEl = document.getElementById('gameBoard');
+        const rollBtn = document.getElementById('rollBtn');
+        const diceResEl = document.getElementById('diceResult');
+        const statusText = document.getElementById('statusText');
+        const modal = document.getElementById('modal');
+        const modalContainer = document.getElementById('modal-container');
+
+        function initBoard() {
+            boardEl.innerHTML = '<div id="player" class="player-token"></div>';
+            for(let r=1; r<=5; r++) {
+                for(let c=1; c<=5; c++) {
+                    const cellEl = document.createElement('div');
+                    cellEl.style.gridRow = r;
+                    cellEl.style.gridColumn = c;
+                    const index = gridPos.findIndex(p => p.r === r && p.c === c);
+                    if (index !== -1 && boardData[index]) {
+                        const data = boardData[index];
+                        cellEl.className = 'cell shadow-sm';
+                        cellEl.id = `cell-${index}`;
+                        cellEl.innerHTML = `<span class="text-lg">${data.icon}</span><span class="font-bold text-green-800">${data.title}</span>`;
+                    } else if (r === 3 && c === 3) {
+                        cellEl.className = 'flex items-center justify-center';
+                        cellEl.innerHTML = `<div class="text-4xl">🌱</div>`;
+                    }
+                    boardEl.appendChild(cellEl);
+                }
+            }
+            updatePlayerPos();
+        }
+
+        function updatePlayerPos() {
+            const playerToken = document.getElementById('player');
+            const currentCell = document.getElementById(`cell-${currentPos}`);
+            if (currentCell && playerToken) {
+                const top = currentCell.offsetTop + (currentCell.offsetHeight / 2) - 12;
+                const left = currentCell.offsetLeft + (currentCell.offsetWidth / 2) - 12;
+                playerToken.style.top = `${top}px`;
+                playerToken.style.left = `${left}px`;
+                document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+                currentCell.classList.add('active');
+                statusText.textContent = boardData[currentPos].title;
+            }
+        }
+
+        rollBtn.onclick = () => {
+            if(rollBtn.disabled) return;
+            rollBtn.disabled = true;
+            diceResEl.textContent = "滾動中...";
+            rollBtn.classList.add('dice-rolling');
+            setTimeout(() => {
+                const roll = Math.floor(Math.random() * 3) + 1;
+                diceResEl.textContent = `點數：${roll}`;
+                rollBtn.classList.remove('dice-rolling');
+                movePlayer(roll);
+            }, 800);
+        };
+
+        function movePlayer(steps) {
+            let i = 0;
+            const interval = setInterval(() => {
+                currentPos = (currentPos + 1) % boardData.length;
+                updatePlayerPos();
+                i++;
+                if(i >= steps) {
+                    clearInterval(interval);
+                    setTimeout(() => showModal(boardData[currentPos]), 400);
+                }
+            }, 300);
+        }
+
+        function showModal(data) {
+            const title = document.getElementById('modalTitle');
+            const icon = document.getElementById('modalIcon');
+            const content = document.getElementById('modalContent');
+            const optionsArea = document.getElementById('modalOptions');
+            const closeBtn = document.getElementById('closeModal');
+
+            title.textContent = data.title;
+            icon.textContent = data.icon;
+            content.textContent = data.content;
+            optionsArea.innerHTML = '';
+            closeBtn.classList.add('hidden');
+
+            if(data.type === 'start') {
+                 const detailP = document.createElement('p');
+                 detailP.className = "mt-2 p-4 bg-yellow-50 rounded-xl text-orange-800 border border-yellow-200 text-center font-bold";
+                 detailP.textContent = "準備出發！";
+                 optionsArea.appendChild(detailP);
+                 closeBtn.classList.remove('hidden');
+            } else {
+                // 所有的格子現在都是 question
+                data.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 py-4 rounded-2xl text-left px-5 transition-all font-bold text-lg";
+                    btn.textContent = opt;
+                    btn.onclick = () => {
+                        if(idx === data.correct) {
+                            btn.className = "w-full bg-green-500 text-white py-4 rounded-2xl text-left px-5 font-bold text-lg";
+                            content.textContent = "✅ 答對了！你真棒！";
+                            speak("答對了");
+                        } else {
+                            btn.className = "w-full bg-red-500 text-white py-4 rounded-2xl text-left px-5 font-bold text-lg";
+                            content.textContent = `❌ 哎呀，正確答案是：${data.options[data.correct]}`;
+                            speak("再想一下");
+                        }
+                        optionsArea.querySelectorAll('button').forEach(b => b.disabled = true);
+                        closeBtn.classList.remove('hidden');
+                    };
+                    optionsArea.appendChild(btn);
+                });
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => modalContainer.classList.remove('scale-0'), 10);
+        }
+
+        function hideModal() {
+            modalContainer.classList.add('scale-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                rollBtn.disabled = false;
+            }, 300);
+        }
+
+        document.getElementById('closeModal').onclick = hideModal;
+
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            if (panel.classList.contains('hidden')) {
+                renderSettingsForm();
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        function renderSettingsForm() {
+            const list = document.getElementById('settings-list');
+            list.innerHTML = "";
+            boardData.forEach((data, idx) => {
+                if (data.type === 'start') return;
+
+                const card = document.createElement('div');
+                card.className = "p-6 bg-green-50 rounded-2xl border-2 border-green-100 shadow-sm";
+                
+                // 確保有預設選項
+                if (!data.options) {
+                    data.options = ["選項一", "選項二", "選項三"];
+                    data.correct = 0;
+                }
+
+                let html = `
+                    <div class="flex gap-4 mb-4">
+                        <div class="w-1/4">
+                            <label class="block text-xs font-bold text-gray-500">圖示</label>
+                            <input type="text" id="set-icon-${idx}" value="${data.icon}" class="w-full p-2 border rounded">
+                        </div>
+                        <div class="w-3/4">
+                            <label class="block text-xs font-bold text-gray-500">格子名稱</label>
+                            <input type="text" id="set-title-${idx}" value="${data.title}" class="w-full p-2 border rounded">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-500">內容/題目敘述</label>
+                        <input type="text" id="set-content-${idx}" value="${data.content}" class="w-full p-2 border rounded">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-gray-500">選項設定 (請勾選正確答案)</label>
+                        ${data.options.map((opt, oIdx) => `
+                            <div class="flex gap-2 items-center">
+                                <input type="radio" name="correct-${idx}" id="set-correct-${idx}-${oIdx}" ${oIdx === data.correct ? 'checked' : ''}>
+                                <input type="text" id="set-opt-${idx}-${oIdx}" value="${opt}" class="flex-1 p-2 border rounded text-sm">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                card.innerHTML = html;
+                list.appendChild(card);
+            });
+        }
+
+        function saveSettings() {
+            boardData.forEach((data, idx) => {
+                if (data.type === 'start') return;
+                
+                data.icon = document.getElementById(`set-icon-${idx}`).value;
+                data.title = document.getElementById(`set-title-${idx}`).value;
+                data.content = document.getElementById(`set-content-${idx}`).value;
+
+                // 強制轉換為 question 類型
+                data.type = 'question';
+
+                data.options = [
+                    document.getElementById(`set-opt-${idx}-0`).value,
+                    document.getElementById(`set-opt-${idx}-1`).value,
+                    document.getElementById(`set-opt-${idx}-2`).value
+                ];
+                
+                for(let i=0; i<3; i++) {
+                    if(document.getElementById(`set-correct-${idx}-${i}`).checked) {
+                        data.correct = i;
+                        break;
+                    }
+                }
+            });
+
+            toggleSettings();
+            currentPos = 0;
+            initBoard();
+            alert("✅ 題目已全部轉換為選擇題並重置遊戲！");
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW';
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        window.onload = initBoard;
+    </script>
+</body>
+</html>

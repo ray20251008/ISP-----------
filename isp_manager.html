@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIGRAVITY ISP 進階管理系統</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        
+        body { 
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #F3F4F6;
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(31, 38, 135, 0.08);
+        }
+
+        textarea { resize: none; }
+        
+        /* 隱藏原生卷軸 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        @media print {
+            body { background: white; }
+            .glass-panel {
+                background: white !important;
+                border: 1px solid #e5e7eb !important;
+                box-shadow: none !important;
+                backdrop-filter: none !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                margin-bottom: 2rem;
+            }
+            .print\:hidden { display: none !important; }
+            /* 隱藏非作用中的月份內容以防列印混亂 */
+            textarea { border: 1px solid #ddd !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- 頂部控制列 -->
+        <header class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6 print:hidden">
+            <div>
+                <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                    <i class="fas fa-layer-group text-blue-500 mr-2"></i>ANTIGRAVITY ISP
+                </h1>
+                <p class="text-gray-500 font-medium mt-1 text-sm">個案目標動態管理與追蹤系統</p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="exportData()" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 shadow-sm transition-all text-sm font-bold">
+                    <i class="fas fa-download mr-1"></i> 備份資料
+                </button>
+                <label class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 shadow-sm transition-all text-sm font-bold cursor-pointer">
+                    <i class="fas fa-upload mr-1"></i> 還原資料
+                    <input type="file" class="hidden" accept=".json" onchange="importData(event)">
+                </label>
+                <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm transition-all text-sm font-bold">
+                    <i class="fas fa-print mr-1"></i> 列印報表
+                </button>
+            </div>
+        </header>
+
+        <!-- 卡片容器 (Sortable) -->
+        <div id="sortable-list" class="space-y-8">
+            <!-- 任務卡片由 JS 動態渲染 -->
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 初始資料設定 ---
+        const initialDataRaw = [
+            { user: "曾宇彤", name: "支持目標1-1 在情境中能主動表達自己的需求(烹飪課、社區活動)", status115: "✅ 達標", initDiag: "已能透過圖卡或短語穩定表達需求，展現良好的自我倡議能力。" },
+            { user: "曾宇彤", name: "支持目標2-1 在團體活動中，能主動遵守輪流、等待的規則", status115: "❌ 未達標", initDiag: "失敗原因：常因缺乏耐心而有催促行為，等待習慣尚未建立，需依賴支持者不斷提醒排隊與同理心引導。" },
+            { user: "曾宇彤", name: "支持目標3-1 正確辨識交通號誌（紅綠燈）", status115: "❌ 未達標", initDiag: "失敗原因：對車行紅綠燈與行人「小綠人」的差異易混淆，尚未能 100% 獨立判斷「通行」或「停止」時機。" },
+            { user: "曾宇彤", name: "支持目標4-1 在重複性作業活動中，能連續專注達 20 分鐘", status115: "❌ 未達標", initDiag: "失敗原因：易分心且自我檢查意識薄弱（常發生漏放或數量錯誤），需支持者頻繁介入提問才能找出錯誤。" },
+            { user: "曾宇彤", name: "支持目標4-2 成品不合格時，能穩定情緒並接受指導立即修正錯誤", status115: "❌ 未達標", initDiag: "失敗原因：面對挫折或錯誤時情緒起伏較大，有時需支持者以嚴肅語氣介入才能正視問題，自我修正責任感不足。" },
+            
+            { user: "林育萱", name: "支持目標1-1 參與多元作業活動，並能獨立完成作業流程", status115: "❌ 未達標", initDiag: "失敗原因：目標未達標率高，主因是秤重精細動作不穩。此外，作業前的準備與事後的歸位仍需指令輔助。" },
+            { user: "林育萱", name: "支持目標1-2 社區活動後，能正確填寫記帳本", status115: "❌ 未達標", initDiag: "失敗原因：金錢概念或數字處理能力尚需加強，填寫記帳本時容易出錯，仍需支持者利用個別化時間給予覆核與指導。" },
+            { user: "林育萱", name: "支持目標2-1 在烹飪活動中，能自主選定烹飪主題或食材組合", status115: "✅ 達標", initDiag: "展現良好的自主決策力，能於班會中主動提出料理想法並規劃所需材料。" },
+            { user: "林育萱", name: "支持目標3-1 靠近他人時，能保持約一步的社交安全距離", status115: "❌ 未達標", initDiag: "失敗原因：對社交界線的敏感度較低，容易在打招呼或牽手時過度靠近，尚未養成自動停在安全距離的習慣。" },
+            { user: "林育萱", name: "支持目標4-2 模擬迷路或受困情境時，能主動出示緊急聯絡卡或撥打求助電話", status115: "✅ 達標", initDiag: "危機應變能力達標，能穩定使用手機撥打求助電話或向店員出示聯絡卡。" }
+        ];
+
+        // 轉換為具備 12 個月狀態的資料結構
+        const defaultData = initialDataRaw.map((d, index) => {
+            let months = [];
+            for(let i=0; i<12; i++) {
+                // 將 115年診斷帶入第 1 個月作為預設
+                if(i === 0) months.push({ month: i+1, status: d.status115.includes('✅') ? 'green' : 'red', explanation: d.initDiag });
+                else months.push({ month: i+1, status: "gray", explanation: "" });
+            }
+            return {
+                id: "goal-" + index,
+                user: d.user,
+                name: d.name,
+                status115: d.status115,
+                months: months,
+                midSummary: "", endSummary: "", nextYearIdea: ""
+            };
+        });
+
+        // --- 2. 狀態管理 ---
+        let appData = JSON.parse(localStorage.getItem('antigravity_isp_data'));
+        if(!appData || appData.length === 0) appData = defaultData;
+        
+        let activeMonths = {}; 
+
+        function saveData() {
+            localStorage.setItem('antigravity_isp_data', JSON.stringify(appData));
+        }
+
+        // --- 3. 渲染邏輯 ---
+        function getMonthButton(goalId, monthData, mIndex, isActive) {
+            let bg = 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200 border';
+            if(monthData.status === 'green') bg = 'bg-green-500 text-white shadow border-green-600';
+            if(monthData.status === 'red') bg = 'bg-red-500 text-white shadow border-red-600';
+            
+            let ring = isActive ? 'ring-4 ring-indigo-200 ring-offset-2 scale-110 z-10' : '';
+            
+            return `<button class="month-btn w-9 h-9 md:w-10 md:h-10 flex-shrink-0 rounded-lg md:rounded-full text-sm font-bold transition-all print:hidden flex items-center justify-center ${bg} ${ring}" data-goal-id="${goalId}" data-month-idx="${mIndex}">${mIndex + 1}</button>`;
+        }
+
+        function getGoalHTML(goal) {
+            if(activeMonths[goal.id] === undefined) activeMonths[goal.id] = 0;
+            const activeIdx = activeMonths[goal.id];
+            const activeMonth = goal.months[activeIdx];
+            
+            let statusBg = 'bg-gray-50 text-gray-600 border-gray-200';
+            let statusText = '未紀錄'; let statusIcon = 'fa-minus';
+            
+            if(activeMonth.status === 'green') { statusBg = 'bg-green-50 text-green-700 border-green-200'; statusText = '已達標'; statusIcon = 'fa-check text-green-500'; }
+            if(activeMonth.status === 'red') { statusBg = 'bg-red-50 text-red-700 border-red-200'; statusText = '未達標'; statusIcon = 'fa-xmark text-red-500'; }
+
+            // 判斷 115年達成狀態的視覺
+            const is115Achieved = goal.status115.includes('✅');
+            const status115Class = is115Achieved ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200';
+
+            return `
+            <div class="goal-card glass-panel rounded-2xl p-6 md:p-8 relative transition-all" data-id="${goal.id}">
+                
+                <!-- 拖曳把手 -->
+                <div class="drag-handle absolute top-6 right-6 text-gray-300 hover:text-indigo-400 cursor-grab active:cursor-grabbing print:hidden transition-colors">
+                    <i class="fas fa-grip-vertical text-2xl"></i>
+                </div>
+                
+                <!-- 標題與層次 -->
+                <div class="mb-6 pr-8 border-b border-gray-100 pb-5">
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <span class="px-3 py-1 bg-indigo-600 text-white text-sm font-bold rounded flex items-center shadow-sm">
+                            <i class="fas fa-user mr-1.5"></i> 服務對象：${goal.user}
+                        </span>
+                        <span class="px-3 py-1 text-sm font-bold rounded flex items-center border ${status115Class}">
+                            115年達成狀態：${goal.status115}
+                        </span>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-extrabold text-gray-800 leading-snug flex items-start">
+                        <i class="fas fa-bullseye text-indigo-400 mr-2 mt-1"></i>
+                        ${goal.name}
+                    </h2>
+                </div>
+                
+                <!-- 月份進度條 -->
+                <div class="mb-6">
+                    <h4 class="text-xs font-bold text-gray-500 mb-3 tracking-wider flex items-center">
+                        <i class="far fa-calendar-alt mr-1.5"></i> 月份進度區 (點選切換月份)
+                    </h4>
+                    <div class="flex flex-wrap gap-2.5">
+                        ${goal.months.map((m, i) => getMonthButton(goal.id, m, i, i === activeIdx)).join('')}
+                    </div>
+                </div>
+                
+                <!-- 每月執行說明區 -->
+                <div class="mb-8 p-5 rounded-xl border ${statusBg} transition-colors">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-bold flex items-center gap-2">
+                            <span class="bg-white px-2 py-0.5 rounded shadow-sm text-sm border font-bold">
+                                ${activeIdx + 1} 月
+                            </span>
+                            每月執行說明
+                        </h4>
+                        <button class="status-btn px-3 py-1.5 rounded-lg bg-white border shadow-sm text-xs font-bold transition-all hover:bg-gray-50 flex items-center gap-2 print:hidden" data-goal-id="${goal.id}">
+                            切換狀態 <i class="fas ${statusIcon} text-lg"></i>
+                        </button>
+                        <div class="hidden print:block text-sm font-bold bg-white px-2 py-1 border rounded">狀態: ${statusText}</div>
+                    </div>
+                    <textarea class="month-explanation w-full bg-white/90 border border-gray-200 rounded-lg p-3 text-sm text-gray-800 focus:ring-2 focus:ring-indigo-400 outline-none transition-all shadow-inner" rows="3" placeholder="請輸入 ${activeIdx + 1} 月份執行狀況或說明..." data-goal-id="${goal.id}">${activeMonth.explanation}</textarea>
+                </div>
+                
+                <!-- 年度總結區 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <h4 class="text-sm font-bold text-gray-600 mb-3 flex items-center"><i class="fas fa-flag-checkered text-gray-400 mr-1.5"></i> 期中總結</h4>
+                        <textarea class="mid-summary w-full bg-white border border-gray-200 rounded-lg p-3 text-sm text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none shadow-sm" rows="3" placeholder="填寫期中總結..." data-goal-id="${goal.id}">${goal.midSummary}</textarea>
+                    </div>
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <h4 class="text-sm font-bold text-gray-600 mb-3 flex items-center"><i class="fas fa-trophy text-yellow-500 mr-1.5"></i> 期末總結</h4>
+                        <textarea class="end-summary w-full bg-white border border-gray-200 rounded-lg p-3 text-sm text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none shadow-sm" rows="3" placeholder="填寫期末總結..." data-goal-id="${goal.id}">${goal.endSummary}</textarea>
+                    </div>
+                    <div class="bg-indigo-50/30 p-4 rounded-xl border border-indigo-50">
+                        <h4 class="text-sm font-bold text-indigo-700 mb-3 flex items-center"><i class="fas fa-rocket text-indigo-500 mr-1.5"></i> 116年構想</h4>
+                        <textarea class="next-year-idea w-full bg-white border border-indigo-100 rounded-lg p-3 text-sm text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none shadow-sm" rows="3" placeholder="規劃明年目標或調整方向..." data-goal-id="${goal.id}">${goal.nextYearIdea}</textarea>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        function renderAll() {
+            const container = document.getElementById('sortable-list');
+            container.innerHTML = appData.map(g => getGoalHTML(g)).join('');
+        }
+
+        function renderGoal(goalId) {
+            const goal = appData.find(g => g.id === goalId);
+            const card = document.querySelector(`.goal-card[data-id="${goalId}"]`);
+            if(card && goal) card.outerHTML = getGoalHTML(goal);
+        }
+
+        // --- 4. 事件委派 ---
+        document.getElementById('sortable-list').addEventListener('click', e => {
+            // 切換月份
+            const monthBtn = e.target.closest('.month-btn');
+            if(monthBtn) {
+                const goalId = monthBtn.dataset.goalId;
+                const monthIdx = parseInt(monthBtn.dataset.monthIdx);
+                activeMonths[goalId] = monthIdx;
+                renderGoal(goalId);
+            }
+            
+            // 切換狀態 (綠 -> 紅 -> 灰 -> 綠)
+            const statusBtn = e.target.closest('.status-btn');
+            if(statusBtn) {
+                const goalId = statusBtn.dataset.goalId;
+                const monthIdx = activeMonths[goalId];
+                const currentStatus = appData.find(g => g.id === goalId).months[monthIdx].status;
+                
+                let nextStatus = 'green';
+                if(currentStatus === 'green') nextStatus = 'red';
+                else if(currentStatus === 'red') nextStatus = 'gray';
+
+                appData.find(g => g.id === goalId).months[monthIdx].status = nextStatus;
+                saveData();
+                renderGoal(goalId);
+            }
+        });
+
+        // 自動儲存文字 (不重新渲染以免失去焦點)
+        document.getElementById('sortable-list').addEventListener('input', e => {
+            const goalId = e.target.dataset.goalId;
+            const goal = appData.find(g => g.id === goalId);
+            
+            if(e.target.classList.contains('month-explanation')) {
+                goal.months[activeMonths[goalId]].explanation = e.target.value;
+            } else if(e.target.classList.contains('mid-summary')) {
+                goal.midSummary = e.target.value;
+            } else if(e.target.classList.contains('end-summary')) {
+                goal.endSummary = e.target.value;
+            } else if(e.target.classList.contains('next-year-idea')) {
+                goal.nextYearIdea = e.target.value;
+            }
+            saveData();
+        });
+
+        // --- 5. 拖曳排序初始化 (Sortable.js) ---
+        new Sortable(document.getElementById('sortable-list'), {
+            animation: 200,
+            handle: '.drag-handle',
+            ghostClass: 'opacity-50',
+            onEnd: function () {
+                const newOrderIds = Array.from(document.getElementById('sortable-list').children).map(el => el.dataset.id);
+                appData = newOrderIds.map(id => appData.find(g => g.id === id));
+                saveData();
+            },
+        });
+
+        // --- 6. 資料備份與還原 ---
+        window.exportData = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", `ISP_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            dl.click();
+        };
+
+        window.importData = function(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if(Array.isArray(imported)) {
+                        appData = imported;
+                        saveData();
+                        renderAll();
+                        alert('✅ 資料還原成功！');
+                    } else alert('❌ 資料格式錯誤！');
+                } catch(err) {
+                    alert('❌ 無法解析檔案！');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        };
+
+        // 啟動渲染
+        renderAll();
+    </script>
+</body>
+</html>

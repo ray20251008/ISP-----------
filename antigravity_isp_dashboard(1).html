@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIGRAVITY ISP Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        :root {
+            /* Updated to Soft Purple/Blue Gradient */
+            --primary-gradient: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
+            --bg-color: #f4f7fb;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --text-main: #1a202c;
+            --text-muted: #4a5568;
+            --border-radius: 32px; /* 3xl border radius */
+            --shadow: 0 20px 50px rgba(142, 197, 252, 0.15); /* Stronger shadow */
+            
+            /* Status Tag Colors */
+            --status-red-bg: rgba(252, 129, 129, 0.15);
+            --status-red-text: #c53030;
+            --status-green-bg: rgba(104, 211, 145, 0.15);
+            --status-green-text: #276749;
+            --status-gray-bg: rgba(203, 213, 224, 0.3);
+            --status-gray-text: #4a5568;
+            
+            --btn-blue: #8EC5FC;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800; /* Bolder */
+            letter-spacing: -0.5px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            background: #edf2f7;
+            padding: 5px;
+            border-radius: 40px;
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            border: none;
+            background: transparent;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #6b46c1; /* Match purple theme */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .btn-add-goal {
+            padding: 12px 24px;
+            border: none;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(142, 197, 252, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add-goal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(142, 197, 252, 0.4);
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 35px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.6);
+            backdrop-filter: blur(20px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px rgba(142, 197, 252, 0.25);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .status-badge::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-red { background: var(--status-red-bg); color: var(--status-red-text); }
+        .status-red::before { background: var(--status-red-text); }
+        .status-green { background: var(--status-green-bg); color: var(--status-green-text); }
+        .status-green::before { background: var(--status-green-text); }
+        .status-gray { background: var(--status-gray-bg); color: var(--status-gray-text); }
+        .status-gray::before { background: var(--status-gray-text); }
+
+        .card-header {
+            margin-bottom: 25px;
+            padding-right: 80px;
+            padding-left: 30px;
+        }
+
+        .domain-tag {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .goal-title {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.4;
+            color: #1a202c;
+            letter-spacing: -0.3px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+            margin-top: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .content-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #2d3748;
+            background: rgba(247, 250, 252, 0.6);
+            padding: 15px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            flex-grow: 1;
+        }
+
+        .progress-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .progress-bar-bg {
+            height: 10px;
+            background: #edf2f7;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .actions {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            flex: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-edit {
+            background: #f1f5f9;
+            color: #334155;
+        }
+        
+        .btn-edit:hover { background: #e2e8f0; }
+
+        .btn-records {
+            background: white;
+            color: #6b46c1;
+            border: 1px solid #e9d8fd;
+        }
+        
+        .btn-records:hover { background: #faf5ff; }
+
+        .btn-delete {
+            background: #fff5f5;
+            color: #c53030;
+            border: 1px solid #fed7d7;
+            padding: 10px;
+            flex: 0 0 auto;
+        }
+        
+        .btn-delete:hover {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+
+        .drag-handle {
+            position: absolute;
+            top: 25px;
+            left: 20px;
+            cursor: grab;
+            color: #cbd5e0;
+            font-size: 20px;
+            padding: 5px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        
+        .drag-handle:hover {
+            color: #718096;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+            background: #edf2f7;
+            border: 2px dashed #cbd5e0;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        /* Expanded Records */
+        .records-area {
+            display: none;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(247, 250, 252, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .records-area.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .month-record {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #cbd5e0;
+        }
+
+        .month-record:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .month-title {
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            color: #2d3748;
+        }
+
+        .month-desc-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #718096;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        
+        .month-desc {
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 10px;
+            line-height: 1.5;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        /* Evaluation Section */
+        .evaluation-section {
+            margin-top: 60px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .evaluation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.6;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #b794f4;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(183, 148, 244, 0.1);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: white;
+            padding: 40px;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .modal.active {
+            display: block;
+            animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a202c;
+        }
+        
+        .btn-close-icon {
+            background: #f1f5f9;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .btn-close-icon:hover { background: #e2e8f0; }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #b794f4;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(183, 148, 244, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #edf2f7;
+        }
+
+        .btn-save { 
+            background: var(--primary-gradient); 
+            color: white; 
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+        .btn-save:hover { box-shadow: 0 10px 20px rgba(183, 148, 244, 0.3); transform: translateY(-2px); }
+        
+        .btn-cancel { 
+            background: #f1f5f9; 
+            color: #4a5568; 
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+        
+        .month-inputs {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .month-input-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .month-input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: 800;
+            font-size: 16px;
+        }
+        
+        .rate-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .rate-input-group input {
+            width: 80px;
+            padding: 8px 12px;
+        }
+
+        @media (max-width: 768px) {
+            .evaluation-grid {
+                grid-template-columns: 1fr;
+            }
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ANTIGRAVITY ISP</h1>
+        <div class="header-actions">
+            <div class="tabs" id="userTabs">
+                <!-- Tabs injected by JS -->
+            </div>
+            <button class="btn-add-goal" onclick="openModal()">
+                <span>＋</span> 新增 ISP 目標
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="cards-grid" id="cardsContainer">
+            <!-- Cards injected by JS -->
+        </div>
+
+        <div class="evaluation-section">
+            <h2 style="margin-bottom: 25px; font-size: 24px; font-weight: 800; color: #1a202c;">期中/期末評估與統整</h2>
+            <div class="evaluation-grid">
+                <div>
+                    <label class="section-title" style="display: block; margin-top: 0; margin-bottom: 12px;">期中修改</label>
+                    <textarea id="midTermText" placeholder="請輸入期中修改內容..." oninput="saveEvaluation()"></textarea>
+                </div>
+                <div>
+                    <label class="section-title" style="display: block; margin-top: 0; margin-bottom: 12px;">期末總結</label>
+                    <textarea id="endTermText" placeholder="請輸入期末總結內容..." oninput="saveEvaluation()"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit/Add Modal -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">編輯 ISP 目標</h2>
+                <button class="btn-close-icon" onclick="closeModal()">✕</button>
+            </div>
+            
+            <div class="form-group">
+                <label>支持領域</label>
+                <input type="text" id="editDomain" placeholder="例如：生活自理、社會參與">
+            </div>
+            <div class="form-group">
+                <label>支持目標</label>
+                <input type="text" id="editTarget" placeholder="具體的目標名稱">
+            </div>
+            <div class="form-group">
+                <label>支持策略</label>
+                <textarea id="editStrategy" rows="4" placeholder="達到目標的方法與策略"></textarea>
+            </div>
+            <div class="form-group">
+                <label>通過標準</label>
+                <textarea id="editStandard" rows="3" placeholder="評估達標的具體標準"></textarea>
+            </div>
+            <div class="form-group">
+                <label>目前狀態</label>
+                <select id="editStatus">
+                    <option value="未達標">未達標</option>
+                    <option value="達標">達標</option>
+                    <option value="未紀錄">未紀錄</option>
+                </select>
+            </div>
+            
+            <h3 style="margin: 35px 0 20px; font-size: 18px; font-weight: 800; border-bottom: 2px solid #edf2f7; padding-bottom: 10px;">每月執行紀錄</h3>
+            <div class="month-inputs" id="monthInputsContainer">
+                <!-- Month inputs injected by JS -->
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn btn-save" onclick="saveChanges()">儲存變更</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generated from JSON
+        const importedData = {"曾宇彤": {"midTerm": "", "endTerm": "", "goals": [{"id": "g_曾宇彤_0", "domain": "-", "target": "宇彤能在口頭提示下，依照不同情境正確且適量使用生活耗材", "strategy": "", "standard": "經口頭提示任務情境後，宇彤能自行判斷或聽從建議數量抽取，不連續取用，達成率 80%（連續6個月）", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_1", "domain": "權利", "target": "支持目標1-1 在情境中能主動表達自己的需求(烹飪課、社區活動)", "strategy": "- 使用視覺圖卡，引導宇彤透過「圖卡」表達『我想要』，隨後鼓勵其配合簡單口語（如：我要水）表達需求。\n- 將需求拆解為「兩個字一組」的短語（如：拿碗、吃飯、乾燥劑），透過簡短語句引導表達，逐步提升自主開口的意願。", "standard": "連續6個月達成 80%", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_2", "domain": "權利", "target": "支持目標1-2 在社區活動中能獨自完成購物流程", "strategy": "- 於班會預先討論採購清單，出發前與結帳前再次確認內容；在店家由宇彤自行拿取商品並與店員結帳，引導其練習收好找零，完整參與購物流程", "standard": "連續6個月達成 80%", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_3", "domain": "人際關係", "target": "支持目標2-1 在團體活動（如：遊戲、討論）中，能主動遵守輪流、等待的規則", "strategy": "- 在課程遊戲中引導宇彤「要玩請排隊、不要催促」，透過同理心（如：妳也不喜歡被人家催），建立等待習慣\n- 當宇彤有達成任務時，支持者立即給予口頭讚美", "standard": "每週四次以上主動遵守規則，連續四週", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_4", "domain": "人際關係", "target": "支持目標2-2 在團體活動中能正確稱呼同儕姓名", "strategy": "- 當宇彤以「ㄟ」稱呼同學時，支持者會立刻提醒：「同學叫什麼名字？」，引導其正確說出名字後再繼續對話。\n- 每日活動開始前進行簡單點名遊戲，引導宇彤看著同學並說出對方的名字，建立正確稱呼的正向記憶\n- 在座位或分組區放置同學的照片，在宇彤需要找人前，先給予視覺提示以減少使用「ㄟ」的機會", "standard": "每週在情境中能五次以上正確稱呼同儕名字，連續四週", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_5", "domain": "社會融合", "target": "支持目標3-1 正確辨識交通號誌（紅綠燈）", "strategy": "- 支持者會利用用餐、丟垃圾或到工廠工作等生活移動空檔，即時引導宇彤判斷路口號誌，釐清車行紅綠燈與行人「小綠人」的差異\n- 過馬路前由支持者引導宇彤觀察燈號，練習正確判斷「通行」或「停止」時機\n- 在課程中，也會反覆宣導「紅燈停、綠燈行」的安全觀念", "standard": "能100%達成「紅燈停、綠燈行」每月至少5次，連續三個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_6", "domain": "社會融合", "target": "支持目標3-2 擔任幫手引導同儕安全過馬路", "strategy": "- 支持者會先讓宇彤判斷路口安全，並帶領同儕過馬路\n- 過程中支持者會給予即時指導與錯誤糾正，並針對正確表現給予具體口頭讚美以強化成功經驗。", "standard": "能正確地引導同儕完成安全過馬路，每月至少5次", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_7", "domain": "物質福祉", "target": "支持目標4-1 在重複性作業活動中，能連續專注達 20 分鐘", "strategy": "- 作業開始前會口頭提醒宇彤拿椅子與乾燥劑就位，並學先先拿昨日未用完的乾燥劑出來使用，建立良好的工作準備習慣\n- 支持者檢視其成品，若發現漏放或數量錯誤，即將該包糖果置於桌上並提問：「這包問題在哪？」，引導其自行找出錯誤並修正後放回箱子內。\n- 透過口頭確認（如：檢查好了嗎？）強化檢查意識，並引導其在放完乾燥劑後主動進行自我核對，透過這一系列訓練以延長她在作業活動上的專注時間", "standard": "在作業活動中專注能達20分鐘，每月至少15次", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_8", "domain": "身體福祉", "target": "支持目標4-2 成品不合格時，能穩定情緒並接受指導立即修正錯誤", "strategy": "- 成品不合格時，支持者先給予 1-2 次自我修正機會。若二檢仍未修正，改以嚴肅語氣介入提問（如：這包錯在哪？該怎麼做？），強化宇彤對工作品質的警覺心。\n- 當宇彤成功找出並修正問題後，支持者即時給予高度肯定（如：妳很厲害，能找出問題），並引導其承諾下次作業時需更加仔細，建立責任感", "standard": "接受指導修正錯誤，不發脾氣，每月至少15次", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_9", "domain": "-", "target": "社區活動結束後，宇彤能在支持者的口頭提示下，參與從領取發票、核對金額到黏貼憑證的整套流程。", "strategy": "- 使用螢光筆在發票金額處畫圈，降低辨識難度。", "standard": "在 10 次練習中，學生能用手指點出發票上數字最大的總額區塊，達成率達 70%。", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}]}, "林育萱": {"midTerm": "", "endTerm": "", "goals": [{"id": "g_林育萱_10", "domain": "-", "target": "宇彤在口頭提示下，完成社區活動後的帳務核對與發票整理作業。", "strategy": "- 1.在記帳本寫下「日期」、「項目」（如：飲料）、「金額」。2.計算：原始零用金 - 支出 = 應剩餘金額。操作計算機進行覆核", "standard": "-", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_11", "domain": "物質福祉", "target": "支持目標1-1參與多元作業活動（如：秤重、包裝、貼標），並能獨立完成作業流程", "strategy": "- 抵達工場後，引導育萱先聽取支持者當天的指示（如：秤糖果、包裝或貼標），確認當天分配的工作站。\n- 確認任務後，育萱自行準備所需工具（如：包裝袋、椅子、貼紙等），建立作業前的準備習慣\n- 作業完成後，自行將剩餘材料與工具歸位放好", "standard": "每10次達成8次且持續6六個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_12", "domain": "物質福祉", "target": "支持目標1-2 社區活動後，能正確填寫記帳本", "strategy": "- 在社區活動購買物品時，由育萱自行結帳，並將找零與發票妥善收好\n- 下午利用個別化時間，讓育萱練習填寫記帳本\n- 填寫完成後，主動交給支持者檢查，針對正確或錯誤的部分給予即時指導與回饋。", "standard": "每10次達成8次且持續6六個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_13", "domain": "自我決策", "target": "支持目標2-1在烹飪活動中，能自主選定烹飪主題或食材組合", "strategy": "- 在班會時間討論當週烹飪主題，鼓勵育萱主動提出想做的料理或食材想法，並讓全班票選討論\n- 主題票選確認後，由育萱練習思考並主動告訴支持者需要準備哪些相關材料，藉此提升其規劃與自主決定的能力", "standard": "每月1次，連續六個月", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_14", "domain": "自我決策", "target": "支持目標2-2擔任指導角色，能向同儕說明或示範操作步驟", "strategy": "- 在料理製作過程中，先由育萱向同儕示範正確的操作步驟\n- 當同儕遇到操作不熟悉或有困難的地方時，育萱可在旁給予口頭提示或實際操作上的協助，培養其擔任指導角色的能力。", "standard": "每月1次，連續六個月", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_15", "domain": "人際關係", "target": "支持目標3-1 靠近他人時，能保持約一步的社交安全距離", "strategy": "- 引導育萱在靠近他人想要牽手或打招呼前，必須先停在安全距離", "standard": "每10次達成8次，持續6個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_16", "domain": "人際關係", "target": "支持目標3-2 欲牽手前先口頭詢問，並尊重對方的意願（若拒絕則停止）", "strategy": "- 先詢問對方：「我可以牽你嗎？」詢問完後，必須等待對方明確答應，才能進行牽手的動作。\n- 若對方拒絕，應立即停止該動作並保持距離\n- 提醒育萱與他人打招呼時，將聲音調整到對方能聽到的音量即可，避免音量過大造成他人的困擾", "standard": "每10次達成8次，持續6個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_17", "domain": "社會融合", "target": "支持目標4-1 在社區行走時，能主動維持行走在白線區域內", "strategy": "- 在社區活動或前往工場的路上，當支持者發現育萱走在白線外時，立即給予口頭提醒（如：「育萱，請走在白線內喔」）\n- 透過持續的口頭支持與引導，讓育萱逐漸養成注意路面標線的習慣", "standard": "每10次達成8次，持續6個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_18", "domain": "社會融合", "target": "支持目標4-2 模擬迷路或受困情境時，能主動出示緊急聯絡卡或撥打求助電話", "strategy": "- 在社區活動中，模擬走失情境，讓育萱練習使用手機撥打求助電話（如：撥回華聖或撥打 110 報警\n- 引導育萱在迷路時可向商店店家（如警察、店員）出示隨身攜帶的緊急聯絡卡，請他人提供協助", "standard": "每10次達成8次，持續6個月", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_19", "domain": "-", "target": "服務對象在支持者部分肢體協助下，參與一日遊圓夢計畫之規劃與執行", "strategy": "", "standard": "能在報讀時間後，配合協助指認時鐘或時間紀錄位置。", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_20", "domain": "-", "target": "育萱在進入工廠或較時時，能依據空間規範將非必要物品歸位，維持個人工作區淨空。", "strategy": "- 物理界定（初期輔助）：\n- 在桌面上用彩色膠帶貼出一個「工作區」（如：桌面中央的長方形）。\n- 告訴她：「這裡面只能放現在要用的東西，外面的空間要空出來。」口訣化檢核：", "standard": "-", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}]}};
+
+        let currentData = {};
+        let currentUser = "";
+        let editingGoalId = null; // null means adding new goal
+
+        function init() {
+            const savedData = localStorage.getItem('ispDashboardDataV2');
+            
+            if (savedData) {
+                currentData = JSON.parse(savedData);
+            } else {
+                currentData = importedData;
+                localStorage.setItem('ispDashboardDataV2', JSON.stringify(currentData));
+            }
+            
+            // Set initial user
+            const users = Object.keys(currentData);
+            if(users.length > 0 && !currentUser) {
+                currentUser = users[0];
+            }
+            
+            renderTabs();
+            renderDashboard();
+        }
+
+        function saveData() {
+            localStorage.setItem('ispDashboardDataV2', JSON.stringify(currentData));
+        }
+
+        function renderTabs() {
+            const tabsContainer = document.getElementById('userTabs');
+            tabsContainer.innerHTML = '';
+            
+            const users = Object.keys(currentData);
+            users.forEach(user => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${user === currentUser ? 'active' : ''}`;
+                btn.textContent = user;
+                btn.onclick = () => {
+                    currentUser = user;
+                    renderTabs();
+                    renderDashboard();
+                };
+                tabsContainer.appendChild(btn);
+            });
+            
+            // Allow adding new user dynamically if needed, but not required yet
+        }
+
+        function renderDashboard() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+            
+            if (!currentData[currentUser]) return;
+            const userData = currentData[currentUser];
+            
+            userData.goals.forEach(goal => {
+                let statusClass = 'status-gray';
+                if (goal.status === '未達標') statusClass = 'status-red';
+                if (goal.status === '達標') statusClass = 'status-green';
+                
+                let totalRate = 0;
+                let recordedMonths = 0;
+                goal.records.forEach(r => {
+                    if (r.rate > 0 || r.desc !== "" || r.strategy !== "") {
+                        totalRate += parseInt(r.rate) || 0;
+                        recordedMonths++;
+                    }
+                });
+                const avgRate = recordedMonths > 0 ? Math.round(totalRate / recordedMonths) : 0;
+
+                const strategyFormatted = goal.strategy ? goal.strategy.replace(/\n/g, '<br>') : '無紀錄';
+                const standardFormatted = goal.standard ? goal.standard.replace(/\n/g, '<br>') : '無紀錄';
+
+                const cardHTML = `
+                    <div class="card" data-id="${goal.id}">
+                        <div class="drag-handle" title="拖曳排序">⋮⋮</div>
+                        <div class="status-badge ${statusClass}">${goal.status}</div>
+                        <div class="card-header">
+                            <span class="domain-tag">${goal.domain}</span>
+                            <div class="goal-title">${goal.target || '未命名目標'}</div>
+                        </div>
+                        
+                        <div class="section-title">支持策略</div>
+                        <div class="content-text" style="margin-bottom: 15px;">${strategyFormatted}</div>
+                        
+                        <div class="section-title">通過標準</div>
+                        <div class="content-text">${standardFormatted}</div>
+
+                        <div class="progress-section">
+                            <div class="progress-text">
+                                <span>當前平均達成率</span>
+                                <span>${avgRate}%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${avgRate}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn btn-records" onclick="toggleRecords('${goal.id}')">每月紀錄</button>
+                            <button class="btn btn-edit" onclick="openModal('${goal.id}')">編輯</button>
+                            <button class="btn btn-delete" onclick="deleteGoal('${goal.id}')" title="刪除目標">🗑️</button>
+                        </div>
+
+                        <div class="records-area" id="records-${goal.id}">
+                            ${goal.records.map(r => `
+                                <div class="month-record">
+                                    <div class="month-title">
+                                        <span>第 ${r.month} 月</span>
+                                        <span>達成率: ${r.rate}%</span>
+                                    </div>
+                                    
+                                    <div class="month-desc-label">執行狀況</div>
+                                    <div class="month-desc">${r.desc ? r.desc.replace(/\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
+                                    
+                                    <div class="month-desc-label">本月執行策略說明</div>
+                                    <div class="month-desc">${r.strategy ? r.strategy.replace(/\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+
+            document.getElementById('midTermText').value = userData.midTerm || '';
+            document.getElementById('endTermText').value = userData.endTerm || '';
+
+            if (window.sortableInstance) {
+                window.sortableInstance.destroy();
+            }
+            window.sortableInstance = new Sortable(container, {
+                animation: 150,
+                handle: '.drag-handle',
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    if (evt.newIndex !== evt.oldIndex) {
+                        const movedGoal = currentData[currentUser].goals.splice(evt.oldIndex, 1)[0];
+                        currentData[currentUser].goals.splice(evt.newIndex, 0, movedGoal);
+                        saveData();
+                    }
+                }
+            });
+        }
+
+        function deleteGoal(goalId) {
+            if (confirm('確定要刪除此目標嗎？')) {
+                currentData[currentUser].goals = currentData[currentUser].goals.filter(g => g.id !== goalId);
+                saveData();
+                renderDashboard();
+            }
+        }
+
+        function toggleRecords(goalId) {
+            const el = document.getElementById(`records-${goalId}`);
+            if(el.classList.contains('active')) {
+                el.classList.remove('active');
+            } else {
+                // close others
+                document.querySelectorAll('.records-area').forEach(e => e.classList.remove('active'));
+                el.classList.add('active');
+            }
+        }
+
+        function openModal(goalId = null) {
+            editingGoalId = goalId;
+            const modalTitle = document.getElementById('modalTitle');
+            
+            const monthsContainer = document.getElementById('monthInputsContainer');
+            monthsContainer.innerHTML = '';
+            
+            if (goalId) {
+                modalTitle.textContent = "編輯 ISP 目標";
+                const goal = currentData[currentUser].goals.find(g => g.id === goalId);
+                
+                document.getElementById('editTarget').value = goal.target;
+                document.getElementById('editDomain').value = goal.domain;
+                document.getElementById('editStrategy').value = goal.strategy;
+                document.getElementById('editStandard').value = goal.standard;
+                document.getElementById('editStatus').value = goal.status;
+
+                goal.records.forEach(r => {
+                    monthsContainer.innerHTML += createMonthInputHTML(r.month, r.desc, r.strategy, r.rate);
+                });
+            } else {
+                modalTitle.textContent = "新增 ISP 目標";
+                document.getElementById('editTarget').value = "";
+                document.getElementById('editDomain').value = "";
+                document.getElementById('editStrategy').value = "";
+                document.getElementById('editStandard').value = "";
+                document.getElementById('editStatus').value = "未紀錄";
+                
+                for(let i=1; i<=12; i++) {
+                    monthsContainer.innerHTML += createMonthInputHTML(i, "", "", 0);
+                }
+            }
+
+            document.getElementById('editModalOverlay').style.display = 'flex';
+        }
+        
+        function createMonthInputHTML(month, desc, strategy, rate) {
+            return `
+                <div class="month-input-card">
+                    <div class="month-input-header">
+                        <span>第 ${month} 月</span>
+                        <div class="rate-input-group">
+                            <label style="margin:0; font-size:13px; font-weight:600;">達成率%</label>
+                            <input type="number" id="rate-${month}" value="${rate}" min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <textarea id="desc-${month}" rows="2" placeholder="請輸入執行狀況...">${desc || ''}</textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <textarea id="strategy-${month}" rows="2" placeholder="請輸入本月執行策略說明...">${strategy || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeModal() {
+            document.getElementById('editModalOverlay').style.display = 'none';
+            editingGoalId = null;
+        }
+
+        function saveChanges() {
+            let goal;
+            
+            if (editingGoalId) {
+                // Edit existing
+                goal = currentData[currentUser].goals.find(g => g.id === editingGoalId);
+            } else {
+                // Add new
+                goal = {
+                    id: 'g_' + Math.random().toString(36).substr(2, 9),
+                    records: Array.from({length: 12}, (_, i) => ({ month: i + 1, desc: "", strategy: "", rate: 0 }))
+                };
+                currentData[currentUser].goals.unshift(goal); // Add to top
+            }
+            
+            goal.target = document.getElementById('editTarget').value;
+            goal.domain = document.getElementById('editDomain').value;
+            goal.strategy = document.getElementById('editStrategy').value;
+            goal.standard = document.getElementById('editStandard').value;
+            goal.status = document.getElementById('editStatus').value;
+
+            for(let i = 1; i <= 12; i++) {
+                goal.records[i-1].desc = document.getElementById(`desc-${i}`).value;
+                goal.records[i-1].strategy = document.getElementById(`strategy-${i}`).value;
+                goal.records[i-1].rate = parseInt(document.getElementById(`rate-${i}`).value) || 0;
+            }
+
+            saveData();
+            renderDashboard();
+            closeModal();
+        }
+
+        function saveEvaluation() {
+            if(!currentData[currentUser]) return;
+            currentData[currentUser].midTerm = document.getElementById('midTermText').value;
+            currentData[currentUser].endTerm = document.getElementById('endTermText').value;
+            saveData();
+        }
+
+        document.getElementById('editModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        window.onload = init;
+    </script>
+// Firebase Configuration
+        // 請將以下內容替換為您的 Firebase 專案設定
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+</body>
+</html>
