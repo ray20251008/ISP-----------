@@ -6,6 +6,7 @@
     <title>ANTIGRAVITY ISP Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             /* Updated to Soft Purple/Blue Gradient */
@@ -648,6 +649,28 @@
             box-shadow: 0 15px 25px rgba(142, 197, 252, 0.4);
         }
 
+        .btn-scan {
+            padding: 4px 10px;
+            background: #e9d8fd;
+            color: #553c9a;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-scan:hover {
+            background: #d6bcfa;
+        }
+        .btn-scan:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 768px) {
             .evaluation-grid {
                 grid-template-columns: 1fr;
@@ -973,11 +996,67 @@
                         <textarea id="standard-${month}" rows="2" placeholder="請輸入本月通過標準...">${standard || ''}</textarea>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label style="font-size:13px; font-weight:700;">執行狀況</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size:13px; font-weight:700; margin-bottom: 0;">執行狀況</label>
+                            <button type="button" class="btn-scan" onclick="document.getElementById('ocrInput-${month}').click()" title="拍照或選擇圖片辨識文字">
+                                📷 掃描文字
+                            </button>
+                            <input type="file" id="ocrInput-${month}" accept="image/*" style="display: none;" onchange="handleOCR(this, ${month})">
+                        </div>
                         <textarea id="desc-${month}" rows="2" placeholder="請輸入執行狀況...">${desc || ''}</textarea>
+                        <div id="ocrStatus-${month}" style="font-size: 12px; color: #6b46c1; margin-top: 5px; display: none;">正在準備掃描模型...</div>
                     </div>
                 </div>
             `;
+        }
+
+        async function handleOCR(input, month) {
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+            const statusEl = document.getElementById(`ocrStatus-${month}`);
+            const btn = input.previousElementSibling;
+            
+            statusEl.style.display = 'block';
+            statusEl.textContent = '正在準備掃描模型... (初次載入需數秒鐘)';
+            btn.disabled = true;
+
+            try {
+                const worker = await Tesseract.createWorker('chi_tra', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            statusEl.textContent = `正在辨識文字中... ${progress}%`;
+                        }
+                    }
+                });
+                
+                const ret = await worker.recognize(file);
+                
+                let text = ret.data.text.trim();
+                text = text.replace(/ /g, '');
+                
+                const textArea = document.getElementById(`desc-${month}`);
+                if (textArea.value) {
+                    textArea.value += '\n' + text;
+                } else {
+                    textArea.value = text;
+                }
+                
+                statusEl.textContent = '✅ 辨識完成！';
+                setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+                await worker.terminate();
+            } catch (error) {
+                console.error(error);
+                statusEl.textContent = '❌ 辨識失敗，請確認圖片是否清晰。';
+                statusEl.style.color = '#e53e3e';
+                setTimeout(() => { 
+                    statusEl.style.display = 'none'; 
+                    statusEl.style.color = '#6b46c1';
+                }, 5000);
+            } finally {
+                btn.disabled = false;
+                input.value = '';
+            }
         }
 
         function closeModal() {
