@@ -585,6 +585,69 @@
             padding: 8px 12px;
         }
 
+        /* Login Overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(244, 247, 251, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px rgba(142, 197, 252, 0.25);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        .login-box h2 {
+            margin-bottom: 10px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 28px;
+            font-weight: 800;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+        .login-box input:focus {
+            outline: none;
+            border-color: #8EC5FC;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(142, 197, 252, 0.2);
+        }
+        .login-box button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(142, 197, 252, 0.3);
+        }
+        .login-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(142, 197, 252, 0.4);
+        }
+
         @media (max-width: 768px) {
             .evaluation-grid {
                 grid-template-columns: 1fr;
@@ -598,6 +661,17 @@
 </head>
 <body>
 
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h2>系統登入</h2>
+            <p style="color: #718096; margin-bottom: 25px; font-size: 14px; font-weight: 500;">請輸入密碼以存取 ANTIGRAVITY ISP 儀表板</p>
+            <input type="password" id="loginPassword" placeholder="請輸入密碼" onkeypress="if(event.key === 'Enter') checkLogin()">
+            <button onclick="checkLogin()">登入</button>
+            <p id="loginError" style="color: #e53e3e; margin-top: 15px; display: none; font-size: 14px; font-weight: 600;">密碼錯誤，請重試</p>
+        </div>
+    </div>
+
     <header>
         <h1>ANTIGRAVITY ISP</h1>
         <div class="header-actions">
@@ -606,6 +680,9 @@
             </div>
             <button class="btn-add-goal" onclick="openModal()">
                 <span>＋</span> 新增 ISP 目標
+            </button>
+            <button class="btn-logout" onclick="logout()" style="padding: 12px 24px; border: 1px solid #e2e8f0; background: white; color: #4a5568; border-radius: 30px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: none;" id="logoutBtn">
+                登出
             </button>
         </div>
     </header>
@@ -643,16 +720,8 @@
                 <input type="text" id="editDomain" placeholder="例如：生活自理、社會參與">
             </div>
             <div class="form-group">
-                <label>支持目標</label>
+                <label>總目標名稱</label>
                 <input type="text" id="editTarget" placeholder="具體的目標名稱">
-            </div>
-            <div class="form-group">
-                <label>支持策略</label>
-                <textarea id="editStrategy" rows="4" placeholder="達到目標的方法與策略"></textarea>
-            </div>
-            <div class="form-group">
-                <label>通過標準</label>
-                <textarea id="editStandard" rows="3" placeholder="評估達標的具體標準"></textarea>
             </div>
             <div class="form-group">
                 <label>目前狀態</label>
@@ -742,15 +811,12 @@
                 let totalRate = 0;
                 let recordedMonths = 0;
                 goal.records.forEach(r => {
-                    if (r.rate > 0 || r.desc !== "" || r.strategy !== "") {
+                    if (r.rate > 0 || r.desc !== "" || (r.strategy && r.strategy !== "") || r.target || r.standard) {
                         totalRate += parseInt(r.rate) || 0;
                         recordedMonths++;
                     }
                 });
                 const avgRate = recordedMonths > 0 ? Math.round(totalRate / recordedMonths) : 0;
-
-                const strategyFormatted = goal.strategy ? goal.strategy.replace(/\n/g, '<br>') : '無紀錄';
-                const standardFormatted = goal.standard ? goal.standard.replace(/\n/g, '<br>') : '無紀錄';
 
                 const cardHTML = `
                     <div class="card" data-id="${goal.id}">
@@ -760,14 +826,8 @@
                             <span class="domain-tag">${goal.domain}</span>
                             <div class="goal-title">${goal.target || '未命名目標'}</div>
                         </div>
-                        
-                        <div class="section-title">支持策略</div>
-                        <div class="content-text" style="margin-bottom: 15px;">${strategyFormatted}</div>
-                        
-                        <div class="section-title">通過標準</div>
-                        <div class="content-text">${standardFormatted}</div>
 
-                        <div class="progress-section">
+                        <div class="progress-section" style="margin-top: 10px; padding-top: 15px; border-top: none;">
                             <div class="progress-text">
                                 <span>當前平均達成率</span>
                                 <span>${avgRate}%</span>
@@ -784,20 +844,32 @@
                         </div>
 
                         <div class="records-area" id="records-${goal.id}">
-                            ${goal.records.map(r => `
+                            ${goal.records.map(r => {
+                                const mTarget = r.target !== undefined ? r.target : (goal.target || '');
+                                const mStrategy = r.strategy !== undefined && r.strategy !== "" ? r.strategy : (goal.strategy || '');
+                                const mStandard = r.standard !== undefined ? r.standard : (goal.standard || '');
+                                
+                                return `
                                 <div class="month-record">
                                     <div class="month-title">
                                         <span>第 ${r.month} 月</span>
                                         <span>達成率: ${r.rate}%</span>
                                     </div>
                                     
-                                    <div class="month-desc-label">執行狀況</div>
-                                    <div class="month-desc">${r.desc ? r.desc.replace(/\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
+                                    <div class="month-desc-label">本月支持目標</div>
+                                    <div class="month-desc">${mTarget ? mTarget.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
+
+                                    <div class="month-desc-label">本月支持策略</div>
+                                    <div class="month-desc">${mStrategy ? mStrategy.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
                                     
-                                    <div class="month-desc-label">本月執行策略說明</div>
-                                    <div class="month-desc">${r.strategy ? r.strategy.replace(/\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
+                                    <div class="month-desc-label">本月通過標準</div>
+                                    <div class="month-desc">${mStandard ? mStandard.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
+
+                                    <div class="month-desc-label">執行狀況</div>
+                                    <div class="month-desc">${r.desc ? r.desc.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
                                 </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `;
@@ -856,30 +928,29 @@
                 
                 document.getElementById('editTarget').value = goal.target;
                 document.getElementById('editDomain').value = goal.domain;
-                document.getElementById('editStrategy').value = goal.strategy;
-                document.getElementById('editStandard').value = goal.standard;
                 document.getElementById('editStatus').value = goal.status;
 
                 goal.records.forEach(r => {
-                    monthsContainer.innerHTML += createMonthInputHTML(r.month, r.desc, r.strategy, r.rate);
+                    const mTarget = r.target !== undefined ? r.target : (goal.target || '');
+                    const mStrategy = r.strategy !== undefined && r.strategy !== "" ? r.strategy : (goal.strategy || '');
+                    const mStandard = r.standard !== undefined ? r.standard : (goal.standard || '');
+                    monthsContainer.innerHTML += createMonthInputHTML(r.month, mTarget, mStrategy, mStandard, r.desc, r.rate);
                 });
             } else {
                 modalTitle.textContent = "新增 ISP 目標";
                 document.getElementById('editTarget').value = "";
                 document.getElementById('editDomain').value = "";
-                document.getElementById('editStrategy').value = "";
-                document.getElementById('editStandard').value = "";
                 document.getElementById('editStatus').value = "未紀錄";
                 
                 for(let i=1; i<=12; i++) {
-                    monthsContainer.innerHTML += createMonthInputHTML(i, "", "", 0);
+                    monthsContainer.innerHTML += createMonthInputHTML(i, "", "", "", "", 0);
                 }
             }
 
             document.getElementById('editModalOverlay').style.display = 'flex';
         }
         
-        function createMonthInputHTML(month, desc, strategy, rate) {
+        function createMonthInputHTML(month, target, strategy, standard, desc, rate) {
             return `
                 <div class="month-input-card">
                     <div class="month-input-header">
@@ -890,10 +961,20 @@
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 12px;">
-                        <textarea id="desc-${month}" rows="2" placeholder="請輸入執行狀況...">${desc || ''}</textarea>
+                        <label style="font-size:13px; font-weight:700;">本月支持目標</label>
+                        <textarea id="target-${month}" rows="2" placeholder="請輸入本月支持目標...">${target || ''}</textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size:13px; font-weight:700;">本月支持策略</label>
+                        <textarea id="strategy-${month}" rows="2" placeholder="請輸入本月支持策略...">${strategy || ''}</textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size:13px; font-weight:700;">本月通過標準</label>
+                        <textarea id="standard-${month}" rows="2" placeholder="請輸入本月通過標準...">${standard || ''}</textarea>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <textarea id="strategy-${month}" rows="2" placeholder="請輸入本月執行策略說明...">${strategy || ''}</textarea>
+                        <label style="font-size:13px; font-weight:700;">執行狀況</label>
+                        <textarea id="desc-${month}" rows="2" placeholder="請輸入執行狀況...">${desc || ''}</textarea>
                     </div>
                 </div>
             `;
@@ -921,13 +1002,13 @@
             
             goal.target = document.getElementById('editTarget').value;
             goal.domain = document.getElementById('editDomain').value;
-            goal.strategy = document.getElementById('editStrategy').value;
-            goal.standard = document.getElementById('editStandard').value;
             goal.status = document.getElementById('editStatus').value;
 
             for(let i = 1; i <= 12; i++) {
-                goal.records[i-1].desc = document.getElementById(`desc-${i}`).value;
+                goal.records[i-1].target = document.getElementById(`target-${i}`).value;
                 goal.records[i-1].strategy = document.getElementById(`strategy-${i}`).value;
+                goal.records[i-1].standard = document.getElementById(`standard-${i}`).value;
+                goal.records[i-1].desc = document.getElementById(`desc-${i}`).value;
                 goal.records[i-1].rate = parseInt(document.getElementById(`rate-${i}`).value) || 0;
             }
 
@@ -949,7 +1030,43 @@
             }
         });
 
-        window.onload = init;
+        const SYSTEM_PASSWORD = "admin"; // 預設密碼，可在此處修改
+
+        function checkLogin() {
+            const pwd = document.getElementById('loginPassword').value;
+            if (pwd === SYSTEM_PASSWORD) {
+                sessionStorage.setItem('ispLoggedIn', 'true');
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'block';
+                init();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('ispLoggedIn');
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+            // 清空畫面上的資料以防被看到
+            document.getElementById('cardsContainer').innerHTML = '';
+            document.getElementById('midTermText').value = '';
+            document.getElementById('endTermText').value = '';
+            document.getElementById('userTabs').innerHTML = '';
+        }
+
+        window.onload = function() {
+            if (sessionStorage.getItem('ispLoggedIn') === 'true') {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'block';
+                init();
+            } else {
+                document.getElementById('loginOverlay').style.display = 'flex';
+                document.getElementById('logoutBtn').style.display = 'none';
+            }
+        };
     </script>
 // Firebase Configuration
         // 請將以下內容替換為您的 Firebase 專案設定
