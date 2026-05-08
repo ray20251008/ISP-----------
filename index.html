@@ -690,6 +690,10 @@
             <h2>系統登入</h2>
             <p style="color: #718096; margin-bottom: 25px; font-size: 14px; font-weight: 500;">請輸入密碼以存取 ANTIGRAVITY ISP 儀表板</p>
             <input type="password" id="loginPassword" placeholder="請輸入密碼" onkeypress="if(event.key === 'Enter') checkLogin()">
+            <label style="display: flex; align-items: center; justify-content: flex-start; margin-top: -5px; margin-bottom: 15px; font-size: 14px; color: #4a5568; cursor: pointer;">
+                <input type="checkbox" style="width: 16px; height: 16px; margin: 0 8px 0 0; padding: 0; min-height: auto;" onclick="document.getElementById('loginPassword').type = this.checked ? 'text' : 'password'">
+                顯示密碼
+            </label>
             <button onclick="checkLogin()">登入</button>
             <p id="loginError" style="color: #e53e3e; margin-top: 15px; display: none; font-size: 14px; font-weight: 600;">密碼錯誤，請重試</p>
         </div>
