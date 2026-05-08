@@ -754,6 +754,14 @@
                     <option value="未紀錄">未紀錄</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label>支持策略</label>
+                <textarea id="editStrategy" rows="3" placeholder="請輸入支持策略..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>通過標準</label>
+                <textarea id="editStandard" rows="2" placeholder="請輸入通過標準..."></textarea>
+            </div>
             
             <h3 style="margin: 35px 0 20px; font-size: 18px; font-weight: 800; border-bottom: 2px solid #edf2f7; padding-bottom: 10px;">每月執行紀錄</h3>
             <div class="month-inputs" id="monthInputsContainer">
@@ -850,7 +858,15 @@
                             <div class="goal-title">${goal.target || '未命名目標'}</div>
                         </div>
 
-                        <div class="progress-section" style="margin-top: 10px; padding-top: 15px; border-top: none;">
+                        <div style="margin-top: 15px; padding: 0 30px;">
+                            <div class="section-title">支持策略</div>
+                            <div class="content-text">${(goal.strategy || '尚未記錄').replace(/\n/g, '<br>')}</div>
+                            
+                            <div class="section-title">通過標準</div>
+                            <div class="content-text">${(goal.standard || '尚未記錄').replace(/\n/g, '<br>')}</div>
+                        </div>
+
+                        <div class="progress-section" style="margin-top: 10px; padding-top: 15px; border-top: none; padding-right: 30px; padding-left: 30px;">
                             <div class="progress-text">
                                 <span>當前平均達成率</span>
                                 <span>${avgRate}%</span>
@@ -949,31 +965,32 @@
                 modalTitle.textContent = "編輯 ISP 目標";
                 const goal = currentData[currentUser].goals.find(g => g.id === goalId);
                 
-                document.getElementById('editTarget').value = goal.target;
-                document.getElementById('editDomain').value = goal.domain;
-                document.getElementById('editStatus').value = goal.status;
+                document.getElementById('editTarget').value = goal.target || '';
+                document.getElementById('editDomain').value = goal.domain || '';
+                document.getElementById('editStatus').value = goal.status || '未紀錄';
+                document.getElementById('editStrategy').value = goal.strategy || '';
+                document.getElementById('editStandard').value = goal.standard || '';
 
                 goal.records.forEach(r => {
-                    const mTarget = r.target !== undefined ? r.target : (goal.target || '');
-                    const mStrategy = r.strategy !== undefined && r.strategy !== "" ? r.strategy : (goal.strategy || '');
-                    const mStandard = r.standard !== undefined ? r.standard : (goal.standard || '');
-                    monthsContainer.innerHTML += createMonthInputHTML(r.month, mTarget, mStrategy, mStandard, r.desc, r.rate);
+                    monthsContainer.innerHTML += createMonthInputHTML(r.month, r.desc, r.rate);
                 });
             } else {
                 modalTitle.textContent = "新增 ISP 目標";
                 document.getElementById('editTarget').value = "";
                 document.getElementById('editDomain').value = "";
                 document.getElementById('editStatus').value = "未紀錄";
+                document.getElementById('editStrategy').value = "";
+                document.getElementById('editStandard').value = "";
                 
                 for(let i=1; i<=12; i++) {
-                    monthsContainer.innerHTML += createMonthInputHTML(i, "", "", "", "", 0);
+                    monthsContainer.innerHTML += createMonthInputHTML(i, "", 0);
                 }
             }
 
             document.getElementById('editModalOverlay').style.display = 'flex';
         }
         
-        function createMonthInputHTML(month, target, strategy, standard, desc, rate) {
+        function createMonthInputHTML(month, desc, rate) {
             return `
                 <div class="month-input-card">
                     <div class="month-input-header">
@@ -982,18 +999,6 @@
                             <label style="margin:0; font-size:13px; font-weight:600;">達成率%</label>
                             <input type="number" id="rate-${month}" value="${rate}" min="0" max="100">
                         </div>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label style="font-size:13px; font-weight:700;">本月支持目標</label>
-                        <textarea id="target-${month}" rows="2" placeholder="請輸入本月支持目標...">${target || ''}</textarea>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label style="font-size:13px; font-weight:700;">本月支持策略</label>
-                        <textarea id="strategy-${month}" rows="2" placeholder="請輸入本月支持策略...">${strategy || ''}</textarea>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label style="font-size:13px; font-weight:700;">本月通過標準</label>
-                        <textarea id="standard-${month}" rows="2" placeholder="請輸入本月通過標準...">${standard || ''}</textarea>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
@@ -1082,13 +1087,15 @@
             goal.target = document.getElementById('editTarget').value;
             goal.domain = document.getElementById('editDomain').value;
             goal.status = document.getElementById('editStatus').value;
+            goal.strategy = document.getElementById('editStrategy').value;
+            goal.standard = document.getElementById('editStandard').value;
 
             for(let i = 1; i <= 12; i++) {
-                goal.records[i-1].target = document.getElementById(`target-${i}`).value;
-                goal.records[i-1].strategy = document.getElementById(`strategy-${i}`).value;
-                goal.records[i-1].standard = document.getElementById(`standard-${i}`).value;
                 goal.records[i-1].desc = document.getElementById(`desc-${i}`).value;
                 goal.records[i-1].rate = parseInt(document.getElementById(`rate-${i}`).value) || 0;
+                delete goal.records[i-1].target;
+                delete goal.records[i-1].strategy;
+                delete goal.records[i-1].standard;
             }
 
             saveData();
