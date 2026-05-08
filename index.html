@@ -884,10 +884,6 @@
 
                         <div class="records-area" id="records-${goal.id}">
                             ${goal.records.map(r => {
-                                const mTarget = r.target !== undefined ? r.target : (goal.target || '');
-                                const mStrategy = r.strategy !== undefined && r.strategy !== "" ? r.strategy : (goal.strategy || '');
-                                const mStandard = r.standard !== undefined ? r.standard : (goal.standard || '');
-                                
                                 return `
                                 <div class="month-record">
                                     <div class="month-title">
@@ -895,15 +891,6 @@
                                         <span>達成率: ${r.rate}%</span>
                                     </div>
                                     
-                                    <div class="month-desc-label">本月支持目標</div>
-                                    <div class="month-desc">${mTarget ? mTarget.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
-
-                                    <div class="month-desc-label">本月支持策略</div>
-                                    <div class="month-desc">${mStrategy ? mStrategy.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
-                                    
-                                    <div class="month-desc-label">本月通過標準</div>
-                                    <div class="month-desc">${mStandard ? mStandard.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
-
                                     <div class="month-desc-label">執行狀況</div>
                                     <div class="month-desc">${r.desc ? r.desc.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
                                 </div>
