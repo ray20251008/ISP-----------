@@ -829,6 +829,113 @@
             justify-content: center;
         }
 
+        /* 文字編輯模式特殊樣式 */
+        .edit-mode-active [contenteditable="true"] {
+            outline: 2px dashed var(--accent-color) !important;
+            outline-offset: 4px;
+            cursor: text;
+        }
+        .edit-mode-active [contenteditable="true"]:hover {
+            background-color: var(--accent-light);
+        }
+
+        /* 強制分頁樣式 */
+        .forced-page-break {
+            page-break-before: always !important;
+            break-before: page !important;
+        }
+
+        /* 避免表格與方塊在列印時被切成兩半 */
+        .record-table, 
+        .conditional-box, 
+        .food-vote-container, 
+        .food-card,
+        .division-table,
+        .tip-box {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* --- 列印縮放（緊湊版）額外 CSS --- */
+        .print-compact .page-container {
+            padding: 12mm 12mm !important;
+        }
+        .print-compact .header {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+        }
+        .print-compact .header h1 {
+            font-size: 30px;
+        }
+        .print-compact .info-table,
+        .print-compact .record-table,
+        .print-compact .division-table {
+            margin-bottom: 12px;
+        }
+        .print-compact .info-table td,
+        .print-compact .record-table th,
+        .print-compact .record-table td,
+        .print-compact .division-table th,
+        .print-compact .division-table td {
+            padding: 8px 12px !important;
+            font-size: 16px !important;
+        }
+        .print-compact .visual-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+        }
+        .print-compact .visual-text {
+            font-size: 17px;
+        }
+        .print-compact .option-item {
+            font-size: 16px;
+            padding: 4px 8px;
+            gap: 8px;
+        }
+        .print-compact .checkbox-custom {
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+        }
+        .print-compact .proposal-header {
+            margin-top: 12px;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            font-size: 18px;
+        }
+        .print-compact .section-badge {
+            font-size: 16px;
+            padding: 6px 12px;
+            margin-bottom: 8px;
+        }
+        .print-compact .badge-self {
+            margin-top: 12px;
+        }
+        .print-compact .section-desc {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .print-compact .conditional-box {
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        .print-compact .food-vote-container {
+            gap: 12px;
+        }
+        .print-compact .food-emoji {
+            font-size: 36px;
+        }
+        .print-compact .food-title {
+            font-size: 17px;
+            margin-bottom: 6px;
+        }
+        .print-compact .tip-box {
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
         /* 響應式佈局調整 */
         @media (max-width: 1100px) {
             .app-container {
@@ -899,7 +1006,8 @@
             }
             .page-container {
                 width: 100% !important;
-                height: 297mm !important;
+                height: auto !important; /* 改為自動，避免固定高度導致剪裁 */
+                min-height: 297mm !important;
                 box-shadow: none !important;
                 border: none !important;
                 padding: 15mm 15mm !important;
@@ -939,13 +1047,13 @@
             </div>
             
             <div class="sidebar-tabs">
-                <button class="tab-btn active" onclick="switchTab('basic-tab')">基本資料</button>
+                <button class="tab-btn active" onclick="switchTab('basic-tab')">基本資料與排版</button>
                 <button class="tab-btn" onclick="switchTab('options-tab')">提案選項</button>
                 <button class="tab-btn" onclick="switchTab('drafts-tab')">存檔管理</button>
             </div>
 
             <div class="sidebar-content">
-                <!-- 頁籤一：基本資料與名冊 -->
+                <!-- 頁籤一：基本資料、名冊與排版 -->
                 <div class="tab-pane active" id="basic-tab">
                     <div class="form-group">
                         <label for="edit-title"><i class="fa-solid fa-file-pen"></i> 會議名稱</label>
@@ -977,6 +1085,35 @@
                         <input type="text" id="edit-supporter" class="form-control" placeholder="請填寫支持者...">
                     </div>
                     
+                    <!-- 💡 列印與排版縮放/手動分頁設定 -->
+                    <div class="form-group" style="border-top: 1px solid var(--sidebar-border); padding-top: 15px; margin-top: 20px;">
+                        <label><i class="fa-solid fa-sliders"></i> 列印與分頁版面設定</label>
+                        
+                        <div style="margin-bottom:12px;">
+                            <label for="select-print-scale" style="font-size:12px; margin-bottom:4px; display:block;">版面間距縮放（若列印時表格被切，請選緊湊）</label>
+                            <select id="select-print-scale" class="form-control" onchange="changePrintScale(this.value)">
+                                <option value="print-normal" selected>標準間距 (預設大小)</option>
+                                <option value="print-compact">緊湊間距 (縮小字體與表格間隙)</option>
+                                <option value="print-spacious">寬鬆間距 (較大字體)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="font-size:12px; margin-bottom:6px; display:block;">手動斷行設定 (✂️ 分頁點)</label>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <label style="display:flex; align-items:center; gap:8px; font-weight:normal; font-size:13px; color:var(--sidebar-text-muted); cursor:pointer;">
+                                    <input type="checkbox" id="break-before-self" onchange="togglePageBreak('self', this.checked)"> 在「個人決定：我的活動計畫」前強制斷行
+                                </label>
+                                <label style="display:flex; align-items:center; gap:8px; font-weight:normal; font-size:13px; color:var(--sidebar-text-muted); cursor:pointer;">
+                                    <input type="checkbox" id="break-before-prop2" onchange="togglePageBreak('prop2', this.checked)"> 在「提案二」前強制斷行
+                                </label>
+                                <label style="display:flex; align-items:center; gap:8px; font-weight:normal; font-size:13px; color:var(--sidebar-text-muted); cursor:pointer;">
+                                    <input type="checkbox" id="break-before-roles" onchange="togglePageBreak('roles', this.checked)"> 在「點心工作分配表」前強制斷行
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group" style="border-top: 1px solid var(--sidebar-border); padding-top: 15px; margin-top: 20px;">
                         <label><i class="fa-solid fa-users-rectangle"></i> 學生名冊管理（連動分工下拉選單）</label>
                         <div class="roster-list" id="roster-container">
@@ -1054,9 +1191,14 @@
             <div class="canvas-toolbar no-print">
                 <div class="toolbar-left">
                     <h3 id="toolbar-meeting-title">班級會議紀錄</h3>
-                    <p>支援平板點選、鍵盤輸入、自動存檔，符合 A4 格式排版</p>
+                    <p>雙欄式智慧介面，支援文字編輯模式，完美解決列印斷行切割問題</p>
                 </div>
                 <div class="toolbar-buttons">
+                    <!-- 🛠️ 文字編輯修改模式開關 -->
+                    <button class="btn-premium btn-premium-outline" id="btn-edit-mode" onclick="toggleTextEditMode()">
+                        <i class="fa-solid fa-pen-to-square"></i> 啟用版面文字修改
+                    </button>
+                    
                     <button class="btn-premium btn-premium-secondary" onclick="window.print()">
                         <i class="fa-solid fa-print"></i> 列印 / 另存 PDF
                     </button>
@@ -1070,12 +1212,12 @@
             </div>
 
             <!-- A4 畫布區 -->
-            <div class="a4-viewport" id="a4-viewport">
+            <div class="a4-viewport print-normal" id="a4-viewport">
                 
                 <!-- A4 第一頁：基本資料與提案一 -->
                 <div id="print-area-1" class="page-container">
                     <div class="header">
-                        <h1 id="a4-title-display">班 級 會 議 紀 錄</h1>
+                        <h1 id="a4-title-display" contenteditable="false">班 級 會 議 紀 錄</h1>
                     </div>
 
                     <!-- 基本資料表格 -->
@@ -1101,15 +1243,15 @@
                     </table>
 
                     <!-- 提案一 -->
-                    <div class="proposal-header" style="background-color: var(--primary-group);">
-                        <i class="fa-solid fa-store"></i> 提案一：社區活動店家票選
+                    <div class="proposal-header" style="background-color: var(--primary-group);" contenteditable="false">
+                        <i class="fa-solid fa-store"></i> 提案一：5 月 7 日社區活動店家票選
                     </div>
 
                     <!-- 👥 集合決定 -->
-                    <div class="section-badge badge-group">
+                    <div class="section-badge badge-group" contenteditable="false">
                         <i class="fa-solid fa-users"></i> 👥 集合決定：大家一起投票（多數決）
                     </div>
-                    <div class="section-desc">說明：請大家共同投票，選出我們這一天要去的地點與日期。</div>
+                    <div class="section-desc" contenteditable="false">說明：請大家共同投票，選出我們這一天要去的地點與日期。</div>
 
                     <table class="record-table">
                         <tr>
@@ -1117,7 +1259,7 @@
                             <td class="col-visual">
                                 <div class="visual-card">
                                     <div class="visual-icon" style="color: var(--primary-group); border-color: var(--primary-group-light);"><i class="fa-solid fa-calendar-days"></i></div>
-                                    <div class="visual-text">開會日期</div>
+                                    <div class="visual-text" contenteditable="false">開會日期</div>
                                 </div>
                             </td>
                             <td class="col-option">
@@ -1131,7 +1273,7 @@
                             <td class="col-visual">
                                 <div class="visual-card">
                                     <div class="visual-icon" style="color: var(--primary-group); border-color: var(--primary-group-light);"><i class="fa-solid fa-location-dot"></i></div>
-                                    <div class="visual-text">我想去哪裡</div>
+                                    <div class="visual-text" contenteditable="false">我想去哪裡</div>
                                 </div>
                             </td>
                             <td class="col-option">
@@ -1143,18 +1285,18 @@
                     </table>
 
                     <!-- 👤 個人決定 -->
-                    <div class="section-badge badge-self">
+                    <div class="section-badge badge-self" id="a4-section-self" contenteditable="false">
                         <i class="fa-solid fa-user"></i> 👤 個人決定：我的活動計畫（每個人自己決定）
                     </div>
-                    <div class="section-desc">說明：想一想，活動當天你「自己」想要點什麼好吃的？預算要帶多少？</div>
+                    <div class="section-desc" id="a4-desc-self" contenteditable="false">說明：想一想，活動當天你「自己」想要點什麼好吃的？預算要帶多少？</div>
 
-                    <table class="record-table" style="border-color: var(--primary-self);">
+                    <table class="record-table" id="a4-table-self" style="border-color: var(--primary-self);">
                         <tr>
                             <!-- 我吃了什麼項目 -->
                             <td class="col-visual" style="border-color: var(--primary-self);">
                                 <div class="visual-card">
                                     <div class="visual-icon" style="color: var(--primary-self); border-color: var(--primary-self-light);"><i class="fa-solid fa-utensils"></i></div>
-                                    <div class="visual-text">我點了什麼</div>
+                                    <div class="visual-text" contenteditable="false">我點了什麼</div>
                                 </div>
                             </td>
                             <td class="col-option" style="border-color: var(--primary-self);" id="a4-conditional-container">
@@ -1166,7 +1308,7 @@
                             <td class="col-visual" style="border-color: var(--primary-self);">
                                 <div class="visual-card">
                                     <div class="visual-icon" style="color: var(--primary-self); border-color: var(--primary-self-light);"><i class="fa-solid fa-wallet"></i></div>
-                                    <div class="visual-text">我預計花費</div>
+                                    <div class="visual-text" contenteditable="false">我預計花費</div>
                                 </div>
                             </td>
                             <td class="col-option" style="border-color: var(--primary-self);">
@@ -1180,14 +1322,14 @@
 
                 <!-- A4 第二頁：提案二與分工表 -->
                 <div id="print-area-2" class="page-container page-break">
-                    <div class="proposal-header" style="background-color: var(--primary-teal);">
-                        <i class="fa-solid fa-cookie-bite"></i> 提案二：點心餐點製作票選
+                    <div class="proposal-header" id="a4-prop2-header" style="background-color: var(--primary-teal);" contenteditable="false">
+                        <i class="fa-solid fa-cookie-bite"></i> 提案二：5 月 8 日點心餐點製作票選
                     </div>
                     
-                    <div class="section-badge badge-group" style="background-color: var(--primary-teal);">
+                    <div class="section-badge badge-group" id="a4-prop2-badge" style="background-color: var(--primary-teal);" contenteditable="false">
                         <i class="fa-solid fa-users"></i> 👥 集合決定：大家一起投票（多數決）
                     </div>
-                    <div class="section-desc">說明：請在你想動手做的點心卡片上打勾（選一個）。</div>
+                    <div class="section-desc" id="a4-prop2-desc" contenteditable="false">說明：請在你想動手做的點心卡片上打勾（選一個）。</div>
 
                     <!-- 點心投票卡片容器 -->
                     <div class="food-vote-container" id="a4-food-container">
@@ -1195,15 +1337,15 @@
                     </div>
 
                     <!-- 點心分工表 -->
-                    <div class="section-badge badge-self" style="background-color: #0f172a; margin-top: 15px;">
+                    <div class="section-badge badge-self" id="a4-roles-badge" style="background-color: #0f172a; margin-top: 15px;" contenteditable="false">
                         <i class="fa-solid fa-people-carry-box"></i> 👨‍🍳 點心製作工作分配表 ✍️
                     </div>
-                    <div class="section-desc">說明：每個人挑選一個最想嘗試的任務，並寫下名字。</div>
+                    <div class="section-desc" id="a4-roles-desc" contenteditable="false">說明：每個人挑選一個最想嘗試的任務，並寫下名字。</div>
 
-                    <table class="division-table">
+                    <table class="division-table" id="a4-table-roles">
                         <tr>
                             <th>
-                                <div style="font-size: 22px; margin-bottom: 5px;">🧺 備料組</div>
+                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🧺 備料組</div>
                                 <div class="division-role-subtitle">準備食材、洗洗切切、清點用具</div>
                             </th>
                             <td>
@@ -1217,7 +1359,7 @@
                         </tr>
                         <tr>
                             <th>
-                                <div style="font-size: 22px; margin-bottom: 5px;">🍳 烹飪組</div>
+                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🍳 烹飪組</div>
                                 <div class="division-role-subtitle">負責開火、煎烤煮炸、注意安全</div>
                             </th>
                             <td>
@@ -1231,7 +1373,7 @@
                         </tr>
                         <tr>
                             <th>
-                                <div style="font-size: 22px; margin-bottom: 5px;">🥖 組裝組</div>
+                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🥖 組裝組</div>
                                 <div class="division-role-subtitle">用心擺盤、塗抹抹醬、包裝分裝</div>
                             </th>
                             <td>
@@ -1245,7 +1387,7 @@
                         </tr>
                         <tr>
                             <th>
-                                <div style="font-size: 22px; margin-bottom: 5px;">🧼 收拾組</div>
+                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🧼 收拾組</div>
                                 <div class="division-role-subtitle">餐後清潔、清洗擦桌、分類倒垃圾</div>
                             </th>
                             <td>
@@ -1259,7 +1401,7 @@
                         </tr>
                     </table>
 
-                    <div class="tip-box">
+                    <div class="tip-box" id="a4-tip-box" contenteditable="false">
                         <strong>💡 溫馨引導提示：</strong><br>
                         這份分工表格支持服務對象的自主權！請支持者（工作人員/社工）在會議時，帶領服務對象理解每個任務的大致內容，並尊重服務對象主動爭取組別的意願，適時在名稱欄位上提供代筆或代貼圖卡的支持。
                     </div>
@@ -1275,10 +1417,17 @@
     <script>
         // --- 核心資料狀態管理 ---
         let currentDraftId = null;
+        let textEditMode = false; // 是否開啟文字修改模式
         
         // 預設資料庫結構
         let appData = {
             meetingTitle: "班級會議紀錄",
+            printScale: "print-normal", // 版面縮放
+            pageBreaks: {               // 強制分頁點
+                self: false,
+                prop2: true,
+                roles: false
+            },
             info: {
                 location: "二樓多元活動教室",
                 date: "115年5月6日",
@@ -1398,7 +1547,25 @@
             // 6. 同步預算金額
             document.getElementById('a4-budget').value = appData.proposals.budget;
 
-            // 7. 儲存暫存以便重整不遺失
+            // 7. 同步列印排版選項到 DOM
+            document.getElementById('select-print-scale').value = appData.printScale;
+            changePrintScale(appData.printScale, false); // false 代表只套用樣式不複寫狀態
+
+            document.getElementById('break-before-self').checked = appData.pageBreaks.self;
+            togglePageBreak('self', appData.pageBreaks.self, false);
+
+            document.getElementById('break-before-prop2').checked = appData.pageBreaks.prop2;
+            togglePageBreak('prop2', appData.pageBreaks.prop2, false);
+
+            document.getElementById('break-before-roles').checked = appData.pageBreaks.roles;
+            togglePageBreak('roles', appData.pageBreaks.roles, false);
+
+            // 8. 重設編輯狀態 (如果是啟用中，讓新生成的元素也獲得 contenteditable)
+            if (textEditMode) {
+                setEditable(true);
+            }
+
+            // 9. 儲存暫存以便重整不遺失
             saveSessionTemp();
         }
 
@@ -1588,7 +1755,7 @@
 
                 item.innerHTML = `
                     <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
-                    <span>${contentText}</span>
+                    <span class="option-text-span">${contentText}</span>
                 `;
                 item.onclick = (e) => {
                     if (e.target.tagName.toLowerCase() === 'input') return; // 避免點擊輸入框時觸發選中
@@ -1599,7 +1766,6 @@
         }
 
         function toggleDateSelect(idx) {
-            // 多數決：可多選，但通常為單選。在此設計為可自由複選勾選
             appData.proposals.dateOptions[idx].checked = !appData.proposals.dateOptions[idx].checked;
             renderAll();
         }
@@ -1615,13 +1781,12 @@
             const container = document.getElementById('a4-location-options');
             container.innerHTML = '';
             
-            // 找出當前勾選的地點，用以高亮個人點餐分流
             appData.proposals.locationOptions.forEach((opt, idx) => {
                 const item = document.createElement('div');
                 item.className = `option-item ${opt.checked ? 'checked' : ''}`;
                 item.innerHTML = `
                     <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
-                    <span>${opt.text}</span>
+                    <span class="option-text-span">${opt.text}</span>
                 `;
                 item.onclick = () => {
                     toggleLocationSelect(idx);
@@ -1631,7 +1796,6 @@
         }
 
         function toggleLocationSelect(selectedIdx) {
-            // 多數決地點採用單選邏輯
             appData.proposals.locationOptions.forEach((opt, idx) => {
                 opt.checked = (idx === selectedIdx);
             });
@@ -1643,11 +1807,9 @@
             const container = document.getElementById('a4-conditional-container');
             container.innerHTML = '';
 
-            // 尋找當前被選中的多數決地點（用以高亮指示）
             const activeLocationObj = appData.proposals.locationOptions.find(o => o.checked);
             const activeLocationName = activeLocationObj ? activeLocationObj.text : null;
 
-            // 遍歷所有地點的食物選項清單，生成對應的分流盒子
             appData.proposals.locationOptions.forEach(loc => {
                 const locName = loc.text;
                 const foods = appData.proposals.personalFood[locName] || [];
@@ -1676,10 +1838,9 @@
                     item.className = `option-item ${food.checked ? 'checked-self' : ''}`;
                     item.innerHTML = `
                         <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
-                        <span>${food.text}</span>
+                        <span class="option-text-span">${food.text}</span>
                     `;
                     
-                    // 點擊事件：只有被選中的主要分流才能點擊，或者非選中也可以點擊以利預填
                     item.onclick = () => {
                         food.checked = !food.checked;
                         renderAll();
@@ -1715,7 +1876,6 @@
         }
 
         function selectFoodCard(selectedIdx) {
-            // 單選點心
             appData.proposals.foodOptions.forEach((opt, idx) => {
                 opt.checked = (idx === selectedIdx);
             });
@@ -1729,12 +1889,10 @@
                 const select = document.getElementById(`select-role-${role}`);
                 const inputText = document.getElementById(`input-role-${role}-text`);
                 
-                // 暫存目前的選中值
                 const currentSelected = appData.proposals.division[role].name;
                 
                 select.innerHTML = '<option value="">-- 請選擇人員 --</option>';
                 
-                // 加入名冊中的所有人
                 appData.roster.forEach(name => {
                     const opt = document.createElement('option');
                     opt.value = name;
@@ -1745,7 +1903,6 @@
                     select.appendChild(opt);
                 });
 
-                // 新增一個「其他自填」選項
                 const optOther = document.createElement('option');
                 optOther.value = "_OTHER_";
                 optOther.text = "➕ 其他人/共同合作";
@@ -1754,10 +1911,8 @@
                 }
                 select.appendChild(optOther);
 
-                // 同步手寫備註文字
                 inputText.value = appData.proposals.division[role].text || '';
                 
-                // 綁定備註變更事件
                 inputText.oninput = (e) => {
                     appData.proposals.division[role].text = e.target.value;
                     saveSessionTemp();
@@ -1771,9 +1926,107 @@
             saveSessionTemp();
         }
 
-        // --- 4. 草稿存檔系統 (LocalStorage) ---
+        // --- 4. 版面縮放與強制分頁邏輯 ---
+        function changePrintScale(scaleClass, writeState = true) {
+            const viewport = document.getElementById('a4-viewport');
+            viewport.classList.remove('print-compact', 'print-normal', 'print-spacious');
+            viewport.classList.add(scaleClass);
+            if (writeState) {
+                appData.printScale = scaleClass;
+                saveSessionTemp();
+            }
+        }
 
-        // 取得隨機唯一識別碼
+        function togglePageBreak(section, isChecked, writeState = true) {
+            let targetEl;
+            if (section === 'self') {
+                targetEl = document.getElementById('a4-section-self');
+            } else if (section === 'prop2') {
+                targetEl = document.getElementById('print-area-2');
+            } else if (section === 'roles') {
+                targetEl = document.getElementById('a4-roles-badge');
+            }
+            
+            if (targetEl) {
+                if (isChecked) {
+                    targetEl.classList.add('forced-page-break');
+                } else {
+                    targetEl.classList.remove('forced-page-break');
+                }
+            }
+            
+            if (writeState) {
+                appData.pageBreaks[section] = isChecked;
+                saveSessionTemp();
+            }
+        }
+
+        // --- 5. A4 畫面文字直接修改模式 ---
+        function toggleTextEditMode() {
+            textEditMode = !textEditMode;
+            const btn = document.getElementById('btn-edit-mode');
+            const container = document.getElementById('a4-viewport');
+            
+            if (textEditMode) {
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> 鎖定與儲存文字';
+                btn.classList.remove('btn-premium-outline');
+                btn.classList.add('btn-premium-primary');
+                container.classList.add('edit-mode-active');
+                setEditable(true);
+                alert("🛠️ 文字修改模式已啟用！\n您可以直接點擊右側 A4 紙張上的標題、副標、說明文、表格標題、以及選項文字進行修改。修改後的樣式會直接保留在列印與 Word 匯出中！");
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 啟用版面文字修改';
+                btn.classList.remove('btn-premium-primary');
+                btn.classList.add('btn-premium-outline');
+                container.classList.remove('edit-mode-active');
+                setEditable(false);
+                saveEditedTexts();
+            }
+        }
+
+        function setEditable(value) {
+            const selectors = [
+                '#a4-title-display',
+                '.proposal-header',
+                '.section-badge',
+                '.section-desc',
+                '.visual-text',
+                '.division-table th div',
+                '.tip-box',
+                '.option-text-span',
+                '.food-title'
+            ];
+            selectors.forEach(sel => {
+                document.querySelectorAll(sel).forEach(el => {
+                    if (el.querySelector('input')) return; // 有輸入框的跳過
+                    el.contentEditable = value;
+                });
+            });
+        }
+
+        // 鎖定編輯時，若有修改核心選項內容則一併保存到資料狀態
+        function saveEditedTexts() {
+            // 同步標題
+            const titleText = document.getElementById('a4-title-display').innerText.replace(/\s/g, '');
+            if (titleText) {
+                appData.meetingTitle = titleText;
+                document.getElementById('toolbar-meeting-title').innerText = titleText;
+                document.getElementById('edit-title').value = titleText;
+            }
+            
+            // 同步點心選項文字
+            document.querySelectorAll('#a4-food-container .food-card').forEach((card, idx) => {
+                const titleEl = card.querySelector('.food-title');
+                if (titleEl && appData.proposals.foodOptions[idx]) {
+                    appData.proposals.foodOptions[idx].text = titleEl.innerText;
+                }
+            });
+
+            // 同步自定義日期/地點/食物選項 (在此模式下為一次性版面修改，文字會被渲染在預覽畫面上)
+            saveSessionTemp();
+        }
+
+        // --- 6. 草稿存檔系統 (LocalStorage) ---
         function generateId() {
             return 'draft_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
         }
@@ -1820,7 +2073,7 @@
                 try { drafts = JSON.parse(saved); } catch(e){}
             }
 
-            const keys = Object.keys(drafts).sort((a,b) => b.localeCompare(a)); // 新的排前面
+            const keys = Object.keys(drafts).sort((a,b) => b.localeCompare(a));
 
             if (keys.length === 0) {
                 container.innerHTML = '<p style="color:var(--sidebar-text-muted); font-size:14px; text-align:center; padding:15px;">尚無存檔紀錄</p>';
@@ -1911,9 +2164,8 @@
             }
         }
 
-        // 載入預設演示模版
         function loadDefaultTemplate() {
-            if (confirm("這將會覆蓋您目前未存檔的輸入內容，確定要載入預設範本嗎？")) {
+            if (confirm("這將會覆蓋您目前未存檔的輸入內容，確定要載入演示範本嗎？")) {
                 appData = JSON.parse(JSON.stringify(demoTemplate));
                 currentDraftId = null;
                 renderAll();
@@ -1921,9 +2173,8 @@
             }
         }
 
-        // 重設所有勾選狀態
         function resetAllSelections() {
-            if (!confirm("確定要重設目前所有的點選與投票狀態嗎？這會清除打勾與食物投票。")) return;
+            if (!confirm("確定要重設目前所有的勾選與投票狀態嗎？")) return;
             
             appData.proposals.dateOptions.forEach(o => o.checked = false);
             appData.proposals.locationOptions.forEach(o => o.checked = false);
@@ -1936,10 +2187,10 @@
             renderAll();
         }
 
-        // --- 5. 匯出 JSON 備份檔案 ---
+        // --- 7. 匯出備份 JSON 檔案 ---
         function exportDataJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-                version: "1.0",
+                version: "1.1",
                 exportedAt: new Date().toLocaleString(),
                 drafts: JSON.parse(localStorage.getItem('class_meeting_drafts') || '{}')
             }));
@@ -1966,7 +2217,6 @@
                     if (imported && imported.drafts) {
                         let localDrafts = JSON.parse(localStorage.getItem('class_meeting_drafts') || '{}');
                         
-                        // 合併匯入的草稿
                         Object.assign(localDrafts, imported.drafts);
                         localStorage.setItem('class_meeting_drafts', JSON.stringify(localDrafts));
                         
@@ -1982,15 +2232,13 @@
             reader.readAsText(file);
         }
 
-        // --- 6. 進階高相容型 Word 匯出 (.doc HTML相容版) ---
+        // --- 8. 進階高相容型 Word 匯出 (.doc HTML相容版) ---
         function exportToWordHtml() {
-            // 利用深複製複製兩頁 A4 容器，以防破壞原本互動頁面的結構
             const page1Clone = document.getElementById('print-area-1').cloneNode(true);
             const page2Clone = document.getElementById('print-area-2').cloneNode(true);
 
-            // 處理複製的節點，將所有表單控制元件替換成 Word 相容的靜態文字
             function sanitizeFormsForWord(container) {
-                // 1. 替換文字輸入框 <input type="text">
+                // 1. 替換文字輸入框
                 const inputs = container.querySelectorAll('input[type="text"]');
                 inputs.forEach(input => {
                     const val = input.value || input.placeholder || '';
@@ -2001,7 +2249,7 @@
                     input.parentNode.replaceChild(span, input);
                 });
 
-                // 2. 替換下拉選單 <select>
+                // 2. 替換下拉選單
                 const selects = container.querySelectorAll('select');
                 selects.forEach(select => {
                     const val = select.options[select.selectedIndex]?.text || '';
@@ -2022,21 +2270,20 @@
                         icon.style.fontWeight = 'bold';
                         icon.style.fontSize = '18px';
                         
-                        // 判斷是否被選取
                         const isChecked = item.classList.contains('checked') || item.classList.contains('checked-self') || item.parentNode.parentNode.classList.contains('selected');
                         
                         if (isChecked) {
-                            icon.innerText = '☑'; // 勾選方塊
+                            icon.innerText = '☑';
                             icon.style.color = '#4f46e5';
                         } else {
-                            icon.innerText = '☐'; // 未勾選方塊
+                            icon.innerText = '☐';
                             icon.style.color = '#64748b';
                         }
                         checkbox.parentNode.replaceChild(icon, checkbox);
                     }
                 });
 
-                // 4. 對於隱藏/淡化的 conditional box，在 Word 中做灰階淡化處理
+                // 4. 處理 conditional box 灰階效果
                 const condBoxes = container.querySelectorAll('.conditional-box');
                 condBoxes.forEach(box => {
                     if (box.classList.contains('dimmed')) {
@@ -2053,13 +2300,12 @@
             sanitizeFormsForWord(page1Clone);
             sanitizeFormsForWord(page2Clone);
 
-            // 定義針對 Word 解析高度優化的 CSS 樣式表
             const styles = `
                 <style>
                     body { font-family: 'MS Gothic', 'Noto Sans TC', Arial, sans-serif; padding: 20px; color: #0f172a; line-height: 1.5; }
                     h1 { text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 20px; color: #0f172a; }
                     table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th, td { border: 2px solid #94a3b8; padding: 12px; vertical-align: middle; }
+                    th, td { border: 2px solid #cbd5e1; padding: 12px; vertical-align: middle; }
                     .info-label { background-color: #f1f5f9; font-weight: bold; width: 15%; text-align: center; }
                     .proposal-header { background-color: #0f172a; color: white; padding: 12px; font-weight: bold; margin-top: 20px; font-size: 18px; border-radius: 4px; }
                     .section-badge { background-color: #4f46e5; color: white; padding: 6px 12px; font-weight: bold; margin-bottom: 10px; display: inline-block; font-size: 15px; border-radius: 4px; }
@@ -2086,7 +2332,6 @@
                 </style>
             `;
 
-            // 包裝成 Word XML/HTML 標準格式，並強制插入分頁標籤
             const wordHtml = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
@@ -2116,20 +2361,18 @@
             URL.revokeObjectURL(url);
         }
 
-        // --- 7. 側邊欄控制與導覽 ---
+        // --- 9. 側邊欄控制與導覽 ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('open');
         }
 
         function switchTab(tabId) {
-            // 切換按鈕狀態
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
 
-            // 切換面板顯示
             document.querySelectorAll('.tab-pane').forEach(pane => {
                 pane.classList.remove('active');
             });
