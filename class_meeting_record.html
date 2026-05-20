@@ -176,51 +176,6 @@
             box-shadow: 0 0 0 3px var(--accent-light);
         }
 
-        /* 學生名冊卡片管理 */
-        .roster-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-            margin-bottom: 15px;
-        }
-
-        .roster-tag {
-            background-color: #1e293b;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-
-        .roster-tag i {
-            cursor: pointer;
-            color: #ef4444;
-            transition: transform 0.2s;
-        }
-
-        .roster-tag i:hover {
-            transform: scale(1.3);
-        }
-
-        .btn-add-roster {
-            background-color: rgba(255,255,255,0.05);
-            border: 1px dashed rgba(255,255,255,0.3);
-            color: var(--sidebar-text-muted);
-            cursor: pointer;
-        }
-
-        .btn-add-roster:hover {
-            background-color: var(--accent-light);
-            border-color: var(--accent-color);
-            color: #fff;
-        }
-
         /* 草稿列表與操作 */
         .draft-card {
             background-color: #1e293b;
@@ -614,61 +569,6 @@
             transform: scale(1.05);
         }
 
-        .option-item.checked-self .checkbox-custom {
-            border-color: var(--primary-self);
-            background-color: var(--primary-self-light);
-            color: var(--primary-self);
-            transform: scale(1.05);
-        }
-
-        /* 地點分流提示（小叮噹、八方雲集） */
-        .conditional-box {
-            background-color: #fff;
-            border: 2px dashed #cbd5e1;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 12px;
-            transition: all 0.25s ease;
-        }
-
-        .conditional-box.cond-orange {
-            border-color: var(--primary-self);
-            background-color: #fffaf7;
-        }
-
-        /* 智慧亮顯/淡化效果 */
-        .conditional-box.dimmed {
-            opacity: 0.4;
-            filter: grayscale(80%);
-            border-color: #cbd5e1 !important;
-            background-color: #f8fafc !important;
-        }
-
-        .conditional-box.active-highlight {
-            border-color: var(--primary-self);
-            box-shadow: 0 0 12px rgba(234, 88, 12, 0.12);
-        }
-
-        .conditional-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #64748b;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .conditional-box.active-highlight .conditional-title {
-            color: var(--primary-self);
-        }
-
-        .inline-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
         /* 輸入框底線 */
         .input-line {
             border: none;
@@ -686,6 +586,52 @@
 
         .input-line:focus {
             border-bottom-color: var(--accent-color);
+        }
+
+        /* 4個學生自決卡片排版 */
+        .personal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .personal-card {
+            border: 3px solid var(--primary-self);
+            border-radius: 12px;
+            padding: 14px;
+            background-color: #fffaf7;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .personal-card-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary-self);
+            border-bottom: 2px dashed #ffedd5;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .personal-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .personal-field input {
+            flex-grow: 1;
+            font-size: 16px;
+            padding: 2px 6px;
         }
 
         /* 提案二：點心投票與分工 */
@@ -772,31 +718,6 @@
             margin-top: 4px;
         }
 
-        /* 整合的名冊下拉選單與代筆輸入框 */
-        .staff-select-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .staff-select {
-            flex-grow: 1;
-            padding: 8px;
-            border: 2px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 17px;
-            font-weight: bold;
-            outline: none;
-            background-color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .staff-select:focus {
-            border-color: var(--accent-color);
-        }
-
         /* 友善提示區 */
         .tip-box {
             background-color: #fffbeb;
@@ -847,7 +768,8 @@
 
         /* 避免表格與方塊在列印時被切成兩半 */
         .record-table, 
-        .conditional-box, 
+        .personal-grid,
+        .personal-card,
         .food-vote-container, 
         .food-card,
         .division-table,
@@ -916,10 +838,6 @@
             font-size: 14px;
             margin-bottom: 8px;
         }
-        .print-compact .conditional-box {
-            padding: 8px;
-            margin-bottom: 8px;
-        }
         .print-compact .food-vote-container {
             gap: 12px;
         }
@@ -934,6 +852,27 @@
             padding: 10px;
             margin-top: 10px;
             font-size: 13px;
+        }
+
+        /* 緊湊間距：學生卡片額外縮放 */
+        .print-compact .personal-grid {
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .print-compact .personal-card {
+            padding: 8px 10px;
+            gap: 6px;
+        }
+        .print-compact .personal-card-title {
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+        .print-compact .personal-field {
+            font-size: 14px;
+            gap: 6px;
+        }
+        .print-compact .personal-field input {
+            font-size: 14px;
         }
 
         /* 響應式佈局調整 */
@@ -1053,7 +992,7 @@
             </div>
 
             <div class="sidebar-content">
-                <!-- 頁籤一：基本資料、名冊與排版 -->
+                <!-- 頁籤一：基本資料與排版 -->
                 <div class="tab-pane active" id="basic-tab">
                     <div class="form-group">
                         <label for="edit-title"><i class="fa-solid fa-file-pen"></i> 會議名稱</label>
@@ -1084,6 +1023,14 @@
                         <label for="edit-supporter"><i class="fa-solid fa-hands-holding-child"></i> 支持者</label>
                         <input type="text" id="edit-supporter" class="form-control" placeholder="請填寫支持者...">
                     </div>
+
+                    <!-- 👥 個人決定 4人份編輯區 -->
+                    <div class="form-group" style="border-top: 1px solid var(--sidebar-border); padding-top: 15px; margin-top: 20px;">
+                        <label><i class="fa-solid fa-users"></i> 個人自決設定 (4人份)</label>
+                        <div id="sidebar-personal-decisions-container">
+                            <!-- JS 動態生成編輯欄位 -->
+                        </div>
+                    </div>
                     
                     <!-- 💡 列印與排版縮放/手動分頁設定 -->
                     <div class="form-group" style="border-top: 1px solid var(--sidebar-border); padding-top: 15px; margin-top: 20px;">
@@ -1102,7 +1049,7 @@
                             <label style="font-size:12px; margin-bottom:6px; display:block;">手動斷行設定 (✂️ 分頁點)</label>
                             <div style="display:flex; flex-direction:column; gap:8px;">
                                 <label style="display:flex; align-items:center; gap:8px; font-weight:normal; font-size:13px; color:var(--sidebar-text-muted); cursor:pointer;">
-                                    <input type="checkbox" id="break-before-self" onchange="togglePageBreak('self', this.checked)"> 在「個人決定：我的活動計畫」前強制斷行
+                                    <input type="checkbox" id="break-before-self" onchange="togglePageBreak('self', this.checked)"> 在「個人決定」前強制斷行
                                 </label>
                                 <label style="display:flex; align-items:center; gap:8px; font-weight:normal; font-size:13px; color:var(--sidebar-text-muted); cursor:pointer;">
                                     <input type="checkbox" id="break-before-prop2" onchange="togglePageBreak('prop2', this.checked)"> 在「提案二」前強制斷行
@@ -1111,17 +1058,6 @@
                                     <input type="checkbox" id="break-before-roles" onchange="togglePageBreak('roles', this.checked)"> 在「點心工作分配表」前強制斷行
                                 </label>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="border-top: 1px solid var(--sidebar-border); padding-top: 15px; margin-top: 20px;">
-                        <label><i class="fa-solid fa-users-rectangle"></i> 學生名冊管理（連動分工下拉選單）</label>
-                        <div class="roster-list" id="roster-container">
-                            <!-- 動態載入學生標籤 -->
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <input type="text" id="input-new-student" class="form-control" placeholder="新增學生姓名..." style="flex-grow:1;">
-                            <button class="btn-premium btn-premium-primary" onclick="addStudent()" style="padding: 10px 14px;"><i class="fa-solid fa-plus"></i></button>
                         </div>
                     </div>
                 </div>
@@ -1194,6 +1130,11 @@
                     <p>雙欄式智慧介面，支援文字編輯模式，完美解決列印斷行切割問題</p>
                 </div>
                 <div class="toolbar-buttons">
+                    <!-- 💬 開啟對話紀錄按鈕 -->
+                    <button class="btn-premium btn-premium-outline" onclick="window.open('對話紀錄.html', '_blank')">
+                        <i class="fa-solid fa-comments"></i> 💬 開啟對話紀錄
+                    </button>
+                    
                     <!-- 🛠️ 文字編輯修改模式開關 -->
                     <button class="btn-premium btn-premium-outline" id="btn-edit-mode" onclick="toggleTextEditMode()">
                         <i class="fa-solid fa-pen-to-square"></i> 啟用版面文字修改
@@ -1288,36 +1229,18 @@
                     <div class="section-badge badge-self" id="a4-section-self" contenteditable="false">
                         <i class="fa-solid fa-user"></i> 👤 個人決定：我的活動計畫（每個人自己決定）
                     </div>
-                    <div class="section-desc" id="a4-desc-self" contenteditable="false">說明：想一想，活動當天你「自己」想要點什麼好吃的？預算要帶多少？</div>
+                    <div class="section-desc" id="a4-desc-self" contenteditable="false">說明：想一想，活動當天每個人要吃什麼？預算帶多少？（共4格，人數未定可留空手寫）</div>
 
-                    <table class="record-table" id="a4-table-self" style="border-color: var(--primary-self);">
-                        <tr>
-                            <!-- 我吃了什麼項目 -->
-                            <td class="col-visual" style="border-color: var(--primary-self);">
-                                <div class="visual-card">
-                                    <div class="visual-icon" style="color: var(--primary-self); border-color: var(--primary-self-light);"><i class="fa-solid fa-utensils"></i></div>
-                                    <div class="visual-text" contenteditable="false">我點了什麼</div>
-                                </div>
-                            </td>
-                            <td class="col-option" style="border-color: var(--primary-self);" id="a4-conditional-container">
-                                <!-- 智慧分流提示區域，由JS動態生成或亮顯 -->
-                            </td>
-                        </tr>
-                        <tr>
-                            <!-- 我預計花多少錢項目 -->
-                            <td class="col-visual" style="border-color: var(--primary-self);">
-                                <div class="visual-card">
-                                    <div class="visual-icon" style="color: var(--primary-self); border-color: var(--primary-self-light);"><i class="fa-solid fa-wallet"></i></div>
-                                    <div class="visual-text" contenteditable="false">我預計花費</div>
-                                </div>
-                            </td>
-                            <td class="col-option" style="border-color: var(--primary-self);">
-                                <div style="font-size: 20px; padding: 10px 0; font-weight: bold;">
-                                    我想要帶零用金： <input type="text" id="a4-budget" class="input-line" placeholder="（填寫金額）"> 元
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                    <!-- 🍔 菜單選擇參考 -->
+                    <div class="tip-box" id="menu-reference-box" style="background-color: #fffbeb; border-left: 5px solid var(--primary-self); margin-bottom: 15px; color: #92400e;" contenteditable="false">
+                        <strong>🍔 菜單選擇參考：</strong>
+                        <span id="menu-reference-text">請先選擇上方想去的餐廳</span>
+                    </div>
+
+                    <!-- 4個個人決定卡片網格 -->
+                    <div class="personal-grid" id="a4-personal-grid">
+                        <!-- 由 JS 動態生成 4 個卡片 -->
+                    </div>
                 </div>
 
                 <!-- A4 第二頁：提案二與分工表 -->
@@ -1340,7 +1263,7 @@
                     <div class="section-badge badge-self" id="a4-roles-badge" style="background-color: #0f172a; margin-top: 15px;" contenteditable="false">
                         <i class="fa-solid fa-people-carry-box"></i> 👨‍🍳 點心製作工作分配表 ✍️
                     </div>
-                    <div class="section-desc" id="a4-roles-desc" contenteditable="false">說明：每個人挑選一個最想嘗試的任務，並寫下名字。</div>
+                    <div class="section-desc" id="a4-roles-desc" contenteditable="false">說明：請在欄位中寫上自己最想嘗試的任務名稱（學生可直接手寫填寫）。</div>
 
                     <table class="division-table" id="a4-table-roles">
                         <tr>
@@ -1349,11 +1272,9 @@
                                 <div class="division-role-subtitle">準備食材、洗洗切切、清點用具</div>
                             </th>
                             <td>
-                                <div class="staff-select-container">
-                                    <select class="staff-select" id="select-role-prep" onchange="syncRoleSelect('prep')">
-                                        <!-- 動態渲染下拉選單 -->
-                                    </select>
-                                    <input type="text" class="input-line" id="input-role-prep-text" placeholder="手寫或代筆補充..." style="width: 150px; font-size:16px;">
+                                <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                                    <input type="text" class="input-line staff-input" id="input-role-prep-name" placeholder="（請填寫學生姓名）" style="width: 100%; font-size: 19px; font-weight: bold; text-align: left;">
+                                    <input type="text" class="input-line" id="input-role-prep-text" placeholder="手寫或代筆補充..." style="width: 100%; font-size:16px;">
                                 </div>
                             </td>
                         </tr>
@@ -1363,11 +1284,9 @@
                                 <div class="division-role-subtitle">負責開火、煎烤煮炸、注意安全</div>
                             </th>
                             <td>
-                                <div class="staff-select-container">
-                                    <select class="staff-select" id="select-role-cook" onchange="syncRoleSelect('cook')">
-                                        <!-- 動態渲染下拉選單 -->
-                                    </select>
-                                    <input type="text" class="input-line" id="input-role-cook-text" placeholder="手寫或代筆補充..." style="width: 150px; font-size:16px;">
+                                <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                                    <input type="text" class="input-line staff-input" id="input-role-cook-name" placeholder="（請填寫學生姓名）" style="width: 100%; font-size: 19px; font-weight: bold; text-align: left;">
+                                    <input type="text" class="input-line" id="input-role-cook-text" placeholder="手寫或代筆補充..." style="width: 100%; font-size:16px;">
                                 </div>
                             </td>
                         </tr>
@@ -1377,11 +1296,9 @@
                                 <div class="division-role-subtitle">用心擺盤、塗抹抹醬、包裝分裝</div>
                             </th>
                             <td>
-                                <div class="staff-select-container">
-                                    <select class="staff-select" id="select-role-assembly" onchange="syncRoleSelect('assembly')">
-                                        <!-- 動態渲染下拉選單 -->
-                                    </select>
-                                    <input type="text" class="input-line" id="input-role-assembly-text" placeholder="手寫或代筆補充..." style="width: 150px; font-size:16px;">
+                                <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                                    <input type="text" class="input-line staff-input" id="input-role-assembly-name" placeholder="（請填寫學生姓名）" style="width: 100%; font-size: 19px; font-weight: bold; text-align: left;">
+                                    <input type="text" class="input-line" id="input-role-assembly-text" placeholder="手寫或代筆補充..." style="width: 100%; font-size:16px;">
                                 </div>
                             </td>
                         </tr>
@@ -1391,11 +1308,9 @@
                                 <div class="division-role-subtitle">餐後清潔、清洗擦桌、分類倒垃圾</div>
                             </th>
                             <td>
-                                <div class="staff-select-container">
-                                    <select class="staff-select" id="select-role-clean" onchange="syncRoleSelect('clean')">
-                                        <!-- 動態渲染下拉選單 -->
-                                    </select>
-                                    <input type="text" class="input-line" id="input-role-clean-text" placeholder="手寫或代筆補充..." style="width: 150px; font-size:16px;">
+                                <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                                    <input type="text" class="input-line staff-input" id="input-role-clean-name" placeholder="（請填寫學生姓名）" style="width: 100%; font-size: 19px; font-weight: bold; text-align: left;">
+                                    <input type="text" class="input-line" id="input-role-clean-text" placeholder="手寫或代筆補充..." style="width: 100%; font-size:16px;">
                                 </div>
                             </td>
                         </tr>
@@ -1403,7 +1318,7 @@
 
                     <div class="tip-box" id="a4-tip-box" contenteditable="false">
                         <strong>💡 溫馨引導提示：</strong><br>
-                        這份分工表格支持服務對象的自主權！請支持者（工作人員/社工）在會議時，帶領服務對象理解每個任務的大致內容，並尊重服務對象主動爭取組別的意願，適時在名稱欄位上提供代筆或代貼圖卡的支持。
+                        這份分工表格支持服務對象的自主權！請支持者（工作人員/社工）在會議時，帶領服務對象理解每個任務的大致內容，並尊重服務對象主動爭取組別的意願，適時在名稱欄位上提供代筆或讓學生親自寫下姓名。
                     </div>
                 </div>
 
@@ -1448,27 +1363,32 @@
                     { id: "loc-o1", text: "🥩 小叮噹牛排", checked: true },
                     { id: "loc-o2", text: "🥟 八方雲集", checked: false }
                 ],
-                // 提案一：個人自決 - 食物細項
+                // 提案一：個人自決 - 食物選項參考
                 personalFood: {
                     "🥩 小叮噹牛排": [
-                        { text: "牛排", checked: true },
+                        { text: "牛排", checked: false },
                         { text: "豬排", checked: false },
                         { text: "雞排", checked: false }
                     ],
                     "🥟 八方雲集": [
                         { text: "水餃", checked: false },
-                        { text: "鍋貼", checked: true },
+                        { text: "鍋貼", checked: false },
                         { text: "麵食", checked: false }
                     ]
                 },
-                // 提案一：個人自決 - 預計帶多少錢
-                budget: "200",
+                // 提案一：4個個人決定卡片 (姓名、餐點、金額)
+                personalDecisions: [
+                    { name: "曾宇彤", order: "牛排", cost: "200" },
+                    { name: "林育萱", order: "豬排", cost: "180" },
+                    { name: "廖志偉", order: "雞排", cost: "190" },
+                    { name: "王小明", order: "", cost: "" }
+                ],
                 // 提案二：多數決點心卡片
                 foodOptions: [
                     { id: "food-o1", text: "地瓜 Q 餅", emoji: "🍠🟡", checked: true },
                     { id: "food-o2", text: "炒麵麵包", emoji: "🌭🥢", checked: false }
                 ],
-                // 提案二：分工指派名單
+                // 提案二：分工指派名單 (學生填寫姓名與備註)
                 division: {
                     prep: { name: "曾宇彤", text: "" },
                     cook: { name: "廖志偉", text: "社工協助安全" },
@@ -1499,7 +1419,6 @@
             
             renderAll();
             
-            // 響應式：檢測螢幕寬度，如果是手機預設關閉側邊欄
             if (window.innerWidth <= 768) {
                 document.getElementById('close-sidebar-btn').style.display = 'block';
             }
@@ -1531,25 +1450,23 @@
             document.getElementById('edit-supporter').value = appData.info.supporter;
             document.getElementById('a4-supporter').value = appData.info.supporter;
 
-            // 3. 渲染名冊管理標籤
-            renderRosterTags();
-
-            // 4. 渲染編輯器選項表單
+            // 3. 渲染編輯器選項表單
             renderEditorOptions();
 
-            // 5. 渲染 A4 預覽畫面中的動態項目
+            // 4. 渲染 A4 預覽畫面中的動態項目
             renderA4DateOptions();
             renderA4LocationOptions();
-            renderA4ConditionalFood();
+            updateMenuReference();
+            renderA4PersonalCards();
             renderA4FoodCards();
-            renderA4DivisionSelects();
+            renderA4DivisionInputs();
             
-            // 6. 同步預算金額
-            document.getElementById('a4-budget').value = appData.proposals.budget;
+            // 5. 渲染左側個人決定編輯區
+            renderEditorPersonalDecisions();
 
-            // 7. 同步列印排版選項到 DOM
+            // 6. 同步列印排版選項到 DOM
             document.getElementById('select-print-scale').value = appData.printScale;
-            changePrintScale(appData.printScale, false); // false 代表只套用樣式不複寫狀態
+            changePrintScale(appData.printScale, false); 
 
             document.getElementById('break-before-self').checked = appData.pageBreaks.self;
             togglePageBreak('self', appData.pageBreaks.self, false);
@@ -1560,12 +1477,12 @@
             document.getElementById('break-before-roles').checked = appData.pageBreaks.roles;
             togglePageBreak('roles', appData.pageBreaks.roles, false);
 
-            // 8. 重設編輯狀態 (如果是啟用中，讓新生成的元素也獲得 contenteditable)
+            // 7. 重設編輯狀態
             if (textEditMode) {
                 setEditable(true);
             }
 
-            // 9. 儲存暫存以便重整不遺失
+            // 8. 儲存暫存
             saveSessionTemp();
         }
 
@@ -1586,6 +1503,7 @@
                     document.getElementById('a4-title-display').innerText = appData.meetingTitle.split('').join(' ');
                 } else if (id.startsWith('edit-')) {
                     const field = id.replace('edit-', '');
+                    if (field.startsWith('pd-')) return; // 排除個人決定卡片
                     appData.info[field] = e.target.value;
                     document.getElementById(`a4-${field}`).value = e.target.value;
                 }
@@ -1593,40 +1511,7 @@
             });
         });
 
-        // 預算金額雙向同步
-        document.getElementById('a4-budget').addEventListener('input', (e) => {
-            appData.proposals.budget = e.target.value;
-            saveSessionTemp();
-        });
-
-        // --- 1. 名冊管理邏輯 ---
-        function renderRosterTags() {
-            const container = document.getElementById('roster-container');
-            container.innerHTML = '';
-            appData.roster.forEach((name, idx) => {
-                const tag = document.createElement('span');
-                tag.className = 'roster-tag';
-                tag.innerHTML = `${name} <i class="fa-solid fa-circle-xmark" onclick="removeStudent(${idx})"></i>`;
-                container.appendChild(tag);
-            });
-        }
-
-        function addStudent() {
-            const input = document.getElementById('input-new-student');
-            const name = input.value.trim();
-            if (name && !appData.roster.includes(name)) {
-                appData.roster.push(name);
-                input.value = '';
-                renderAll();
-            }
-        }
-
-        function removeStudent(index) {
-            appData.roster.splice(index, 1);
-            renderAll();
-        }
-
-        // --- 2. 提案選項編輯與渲染 ---
+        // --- 1. 提案選項編輯與渲染 ---
         function renderEditorOptions() {
             // A. 日期編輯器
             const dateContainer = document.getElementById('date-options-edit');
@@ -1687,7 +1572,7 @@
                     appData.proposals.personalFood[val] = appData.proposals.personalFood[oldKey];
                     delete appData.proposals.personalFood[oldKey];
                 } else if (!appData.proposals.personalFood[val]) {
-                    appData.proposals.personalFood[val] = [{ text: "選項一", checked: true }, { text: "選項二", checked: false }];
+                    appData.proposals.personalFood[val] = [{ text: "選項一", checked: false }, { text: "選項二", checked: false }];
                 }
             }
             renderAll();
@@ -1718,7 +1603,7 @@
                     checked: false
                 });
                 appData.proposals.personalFood[newLocName] = [
-                    { text: "主餐一", checked: true },
+                    { text: "主餐一", checked: false },
                     { text: "主餐二", checked: false },
                     { text: "點心", checked: false }
                 ];
@@ -1737,6 +1622,57 @@
             renderAll();
         }
 
+        // --- 2. 左側個人自決 4人份編輯區渲染 ---
+        function renderEditorPersonalDecisions() {
+            const container = document.getElementById('sidebar-personal-decisions-container');
+            container.innerHTML = '';
+            
+            appData.proposals.personalDecisions.forEach((dec, idx) => {
+                const div = document.createElement('div');
+                div.style.marginBottom = '12px';
+                div.style.padding = '10px';
+                div.style.backgroundColor = '#1e293b';
+                div.style.borderRadius = '8px';
+                div.style.border = '1px solid rgba(255,255,255,0.05)';
+                div.innerHTML = `
+                    <div style="font-size:13px; font-weight:bold; color:#fff; margin-bottom:8px; display:flex; justify-content:space-between;">
+                        <span>👤 學生 ${idx+1}</span>
+                    </div>
+                    <div style="display:flex; gap:6px; margin-bottom:6px;">
+                        <input type="text" id="edit-pd-${idx}-name" class="form-control" value="${dec.name}" placeholder="姓名" style="width:30%; font-size:13px; padding:6px 10px;">
+                        <input type="text" id="edit-pd-${idx}-order" class="form-control" value="${dec.order}" placeholder="我想點" style="width:45%; font-size:13px; padding:6px 10px;">
+                        <input type="text" id="edit-pd-${idx}-cost" class="form-control" value="${dec.cost}" placeholder="金額" style="width:25%; font-size:13px; padding:6px 10px;">
+                    </div>
+                `;
+                
+                // 綁定事件
+                const nameInput = div.querySelector(`#edit-pd-${idx}-name`);
+                const orderInput = div.querySelector(`#edit-pd-${idx}-order`);
+                const costInput = div.querySelector(`#edit-pd-${idx}-cost`);
+                
+                nameInput.oninput = (e) => {
+                    appData.proposals.personalDecisions[idx].name = e.target.value;
+                    const a4Input = document.querySelector(`#a4-personal-grid .personal-card:nth-child(${idx+1}) .student-name`);
+                    if (a4Input) a4Input.value = e.target.value;
+                    saveSessionTemp();
+                };
+                orderInput.oninput = (e) => {
+                    appData.proposals.personalDecisions[idx].order = e.target.value;
+                    const a4Input = document.querySelector(`#a4-personal-grid .personal-card:nth-child(${idx+1}) .student-order`);
+                    if (a4Input) a4Input.value = e.target.value;
+                    saveSessionTemp();
+                };
+                costInput.oninput = (e) => {
+                    appData.proposals.personalDecisions[idx].cost = e.target.value;
+                    const a4Input = document.querySelector(`#a4-personal-grid .personal-card:nth-child(${idx+1}) .student-cost`);
+                    if (a4Input) a4Input.value = e.target.value;
+                    saveSessionTemp();
+                };
+                
+                container.appendChild(div);
+            });
+        }
+
         // --- 3. A4 預覽畫面動態生成與點擊互動 ---
 
         // A. 渲染 A4 日期多數決選項
@@ -1747,7 +1683,6 @@
                 const item = document.createElement('div');
                 item.className = `option-item ${opt.checked ? 'checked' : ''}`;
                 
-                // 判斷是否為「其他」自訂輸入
                 let contentText = opt.text;
                 if (opt.isCustomText || opt.text.includes("其他")) {
                     contentText = `其他：<input type="text" class="input-line" style="width:180px; font-size:17px;" value="${opt.customText || ''}" placeholder="請填寫日期" oninput="syncCustomDateText(${idx}, this.value)">`;
@@ -1758,7 +1693,7 @@
                     <span class="option-text-span">${contentText}</span>
                 `;
                 item.onclick = (e) => {
-                    if (e.target.tagName.toLowerCase() === 'input') return; // 避免點擊輸入框時觸發選中
+                    if (e.target.tagName.toLowerCase() === 'input') return; 
                     toggleDateSelect(idx);
                 };
                 container.appendChild(item);
@@ -1768,12 +1703,6 @@
         function toggleDateSelect(idx) {
             appData.proposals.dateOptions[idx].checked = !appData.proposals.dateOptions[idx].checked;
             renderAll();
-        }
-
-        function syncCustomDateText(idx, val) {
-            appData.proposals.dateOptions[idx].customText = val;
-            appData.proposals.dateOptions[idx].isCustomText = true;
-            saveSessionTemp();
         }
 
         // B. 渲染 A4 地點多數決選項
@@ -1802,58 +1731,71 @@
             renderAll();
         }
 
-        // C. 智慧分支分流：渲染個人食物選項區
-        function renderA4ConditionalFood() {
-            const container = document.getElementById('a4-conditional-container');
-            container.innerHTML = '';
-
-            const activeLocationObj = appData.proposals.locationOptions.find(o => o.checked);
-            const activeLocationName = activeLocationObj ? activeLocationObj.text : null;
-
-            appData.proposals.locationOptions.forEach(loc => {
-                const locName = loc.text;
-                const foods = appData.proposals.personalFood[locName] || [];
-                
-                const box = document.createElement('div');
-                const isActive = (locName === activeLocationName);
-                
-                box.className = `conditional-box cond-orange ${isActive ? 'active-highlight' : 'dimmed'}`;
-                
-                let titleHtml = `【${locName}】`;
-                if (isActive) {
-                    titleHtml = `<i class="fa-solid fa-star" style="color:var(--primary-self);"></i> 大家決定去【${locName}】時點餐：`;
+        // C. 更新菜單選擇參考
+        function updateMenuReference() {
+            const activeLoc = appData.proposals.locationOptions.find(o => o.checked);
+            const refText = document.getElementById('menu-reference-text');
+            if (activeLoc) {
+                const locName = activeLoc.text;
+                let foodItems = [];
+                if (locName.includes("牛排")) {
+                    foodItems = ["牛排 (200元)", "豬排 (180元)", "雞排 (190元)"];
+                } else if (locName.includes("八方雲集")) {
+                    foodItems = ["招牌水餃 (6元/顆)", "招牌鍋貼 (6.5元/顆)", "酸辣湯 (35元)", "乾麵 (45元)"];
                 } else {
-                    titleHtml = `（若大家去【${locName}】的預備點餐區）`;
+                    const foods = appData.proposals.personalFood[locName] || [];
+                    foodItems = foods.map(f => f.text);
                 }
+                refText.innerHTML = `大家投票想去 <strong>${locName}</strong>。餐點參考：<span style="color:#c2410c; font-weight:bold;">${foodItems.length > 0 ? foodItems.join('、') : '自由填寫'}</span>`;
+            } else {
+                refText.innerHTML = "請先在上方「我想去哪裡」投出多數決地點";
+            }
+        }
 
-                box.innerHTML = `
-                    <div class="conditional-title" style="font-size:16px;">${titleHtml}</div>
-                    <div class="inline-options" id="food-list-${locName.replace(/\s+/g, '')}"></div>
+        // D. 渲染 4個個人決定卡片 (2x2網格)
+        function renderA4PersonalCards() {
+            const container = document.getElementById('a4-personal-grid');
+            container.innerHTML = '';
+            
+            appData.proposals.personalDecisions.forEach((dec, idx) => {
+                const card = document.createElement('div');
+                card.className = 'personal-card';
+                card.innerHTML = `
+                    <div class="personal-card-title">👤 學生 ${idx + 1}</div>
+                    <div class="personal-field">
+                        <span class="field-label">姓名：</span>
+                        <input type="text" class="input-line student-name" value="${dec.name}" placeholder="（請填寫）" oninput="syncPersonalCard(${idx}, 'name', this.value)">
+                    </div>
+                    <div class="personal-field">
+                        <span class="field-label">我想點：</span>
+                        <input type="text" class="input-line student-order" value="${dec.order}" placeholder="（請填寫）" oninput="syncPersonalCard(${idx}, 'order', this.value)">
+                    </div>
+                    <div class="personal-field">
+                        <span class="field-label">花費：</span>
+                        <input type="text" class="input-line student-cost" style="width: 70px; text-align:center;" value="${dec.cost}" placeholder="（填寫）" oninput="syncPersonalCard(${idx}, 'cost', this.value)"> 元
+                    </div>
                 `;
-
-                const listContainer = box.querySelector('.inline-options');
-                
-                foods.forEach((food, fIdx) => {
-                    const item = document.createElement('div');
-                    item.className = `option-item ${food.checked ? 'checked-self' : ''}`;
-                    item.innerHTML = `
-                        <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
-                        <span class="option-text-span">${food.text}</span>
-                    `;
-                    
-                    item.onclick = () => {
-                        food.checked = !food.checked;
-                        renderAll();
-                    };
-                    
-                    listContainer.appendChild(item);
-                });
-
-                container.appendChild(box);
+                container.appendChild(card);
             });
         }
 
-        // D. 渲染點心投票卡片
+        function syncPersonalCard(idx, field, value) {
+            appData.proposals.personalDecisions[idx][field] = value;
+            // 同步左邊
+            const editInput = document.getElementById(`edit-pd-${idx}-${field}`);
+            if (editInput) {
+                editInput.value = value;
+            }
+            saveSessionTemp();
+        }
+
+        function syncCustomDateText(idx, val) {
+            appData.proposals.dateOptions[idx].customText = val;
+            appData.proposals.dateOptions[idx].isCustomText = true;
+            saveSessionTemp();
+        }
+
+        // E. 渲染點心投票卡片
         function renderA4FoodCards() {
             const container = document.getElementById('a4-food-container');
             container.innerHTML = '';
@@ -1882,48 +1824,25 @@
             renderAll();
         }
 
-        // E. 渲染分工表下拉選單與名冊連動
-        function renderA4DivisionSelects() {
+        // F. 渲染分工表文字輸入框 (名字由學生手寫或直接輸入)
+        function renderA4DivisionInputs() {
             const roles = ['prep', 'cook', 'assembly', 'clean'];
             roles.forEach(role => {
-                const select = document.getElementById(`select-role-${role}`);
+                const inputName = document.getElementById(`input-role-${role}-name`);
                 const inputText = document.getElementById(`input-role-${role}-text`);
                 
-                const currentSelected = appData.proposals.division[role].name;
-                
-                select.innerHTML = '<option value="">-- 請選擇人員 --</option>';
-                
-                appData.roster.forEach(name => {
-                    const opt = document.createElement('option');
-                    opt.value = name;
-                    opt.text = name;
-                    if (name === currentSelected) {
-                        opt.selected = true;
-                    }
-                    select.appendChild(opt);
-                });
-
-                const optOther = document.createElement('option');
-                optOther.value = "_OTHER_";
-                optOther.text = "➕ 其他人/共同合作";
-                if (currentSelected === "_OTHER_") {
-                    optOther.selected = true;
-                }
-                select.appendChild(optOther);
-
+                inputName.value = appData.proposals.division[role].name || '';
                 inputText.value = appData.proposals.division[role].text || '';
                 
+                inputName.oninput = (e) => {
+                    appData.proposals.division[role].name = e.target.value;
+                    saveSessionTemp();
+                };
                 inputText.oninput = (e) => {
                     appData.proposals.division[role].text = e.target.value;
                     saveSessionTemp();
                 };
             });
-        }
-
-        function syncRoleSelect(role) {
-            const select = document.getElementById(`select-role-${role}`);
-            appData.proposals.division[role].name = select.value;
-            saveSessionTemp();
         }
 
         // --- 4. 版面縮放與強制分頁邏輯 ---
@@ -1998,15 +1917,13 @@
             ];
             selectors.forEach(sel => {
                 document.querySelectorAll(sel).forEach(el => {
-                    if (el.querySelector('input')) return; // 有輸入框的跳過
+                    if (el.querySelector('input')) return; 
                     el.contentEditable = value;
                 });
             });
         }
 
-        // 鎖定編輯時，若有修改核心選項內容則一併保存到資料狀態
         function saveEditedTexts() {
-            // 同步標題
             const titleText = document.getElementById('a4-title-display').innerText.replace(/\s/g, '');
             if (titleText) {
                 appData.meetingTitle = titleText;
@@ -2014,7 +1931,6 @@
                 document.getElementById('edit-title').value = titleText;
             }
             
-            // 同步點心選項文字
             document.querySelectorAll('#a4-food-container .food-card').forEach((card, idx) => {
                 const titleEl = card.querySelector('.food-title');
                 if (titleEl && appData.proposals.foodOptions[idx]) {
@@ -2022,7 +1938,6 @@
                 }
             });
 
-            // 同步自定義日期/地點/食物選項 (在此模式下為一次性版面修改，文字會被渲染在預覽畫面上)
             saveSessionTemp();
         }
 
@@ -2178,11 +2093,18 @@
             
             appData.proposals.dateOptions.forEach(o => o.checked = false);
             appData.proposals.locationOptions.forEach(o => o.checked = false);
-            Object.keys(appData.proposals.personalFood).forEach(k => {
-                appData.proposals.personalFood[k].forEach(f => f.checked = false);
-            });
             appData.proposals.foodOptions.forEach(o => o.checked = false);
-            appData.proposals.budget = "";
+            
+            appData.proposals.personalDecisions.forEach(d => {
+                d.name = "";
+                d.order = "";
+                d.cost = "";
+            });
+
+            appData.proposals.division.prep.name = "";
+            appData.proposals.division.cook.name = "";
+            appData.proposals.division.assembly.name = "";
+            appData.proposals.division.clean.name = "";
             
             renderAll();
         }
@@ -2190,7 +2112,7 @@
         // --- 7. 匯出備份 JSON 檔案 ---
         function exportDataJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-                version: "1.1",
+                version: "1.2",
                 exportedAt: new Date().toLocaleString(),
                 drafts: JSON.parse(localStorage.getItem('class_meeting_drafts') || '{}')
             }));
@@ -2282,19 +2204,6 @@
                         checkbox.parentNode.replaceChild(icon, checkbox);
                     }
                 });
-
-                // 4. 處理 conditional box 灰階效果
-                const condBoxes = container.querySelectorAll('.conditional-box');
-                condBoxes.forEach(box => {
-                    if (box.classList.contains('dimmed')) {
-                        box.style.opacity = '0.4';
-                        box.style.backgroundColor = '#f1f5f9';
-                        box.style.border = '2px dashed #cbd5e1';
-                    } else {
-                        box.style.backgroundColor = '#fffaf7';
-                        box.style.border = '2px dashed #ea580c';
-                    }
-                });
             }
 
             sanitizeFormsForWord(page1Clone);
@@ -2319,8 +2228,13 @@
                     .visual-text { font-size: 16px; font-weight: bold; color: #0f172a; }
                     .option-list { margin-bottom: 8px; }
                     .option-item { margin-bottom: 6px; font-size: 16px; display: flex; align-items: center; }
-                    .conditional-box { border: 2px dashed #cbd5e1; padding: 12px; margin-bottom: 12px; border-radius: 6px; }
-                    .conditional-title { font-weight: bold; color: #475569; margin-bottom: 6px; font-size: 14px; }
+                    
+                    /* 個人自決卡片 Word 樣式 */
+                    .personal-grid { display: block; width: 100%; margin-top: 15px; }
+                    .personal-card { display: inline-block; border: 3px solid #ea580c; padding: 12px; border-radius: 8px; background-color: #fffaf7; width: 45%; margin: 2%; vertical-align: top; box-sizing: border-box; }
+                    .personal-card-title { font-weight: bold; color: #ea580c; font-size: 16px; border-bottom: 2px dashed #ea580c; padding-bottom: 4px; margin-bottom: 8px; }
+                    .personal-field { margin-bottom: 6px; font-weight: bold; font-size: 14px; }
+
                     .food-vote-container { display: table; width: 100%; margin-bottom: 20px; }
                     .food-card { display: table-cell; border: 3px solid #cbd5e1; padding: 15px; text-align: center; width: 50%; background-color: #ffffff; vertical-align: middle; }
                     .food-card.selected { background-color: #ccfbf1; border-color: #0d9488; }
