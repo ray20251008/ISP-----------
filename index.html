@@ -1186,6 +1186,7 @@
                         <div style="display:flex; flex-direction:column; gap:12px;" id="food-options-edit">
                             <!-- 動態生成 -->
                         </div>
+                        <button class="btn-action-small" onclick="addCustomOption('food')" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> 新增點心選項</button>
                     </div>
                 </div>
 
@@ -1687,7 +1688,7 @@
                 locContainer.appendChild(row);
             });
 
-            // C. 點心選項編輯器 (主要鎖定兩個)
+            // C. 點心選項編輯器
             const foodContainer = document.getElementById('food-options-edit');
             foodContainer.innerHTML = '';
             appData.proposals.foodOptions.forEach((opt, idx) => {
@@ -1696,10 +1697,14 @@
                 card.style.padding = '10px';
                 card.style.borderRadius = '8px';
                 card.style.border = '1px solid rgba(255,255,255,0.05)';
+                card.style.marginBottom = '8px';
                 card.innerHTML = `
-                    <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <input type="text" class="form-control" value="${opt.emoji}" oninput="updateFoodEmoji(${idx}, this.value)" placeholder="表情符號" style="width:70px; text-align:center;">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" class="form-control" value="${opt.emoji}" oninput="updateFoodEmoji(${idx}, this.value)" placeholder="表情" style="width:50px; text-align:center;">
                         <input type="text" class="form-control" value="${opt.text}" oninput="updateFoodText(${idx}, this.value)" placeholder="點心名稱" style="flex-grow:1;">
+                        ${idx > 1 ? `
+                        <button class="btn-action-small btn-action-delete" onclick="removeOption('food', ${idx})" style="padding: 6px 8px; margin: 0;"><i class="fa-solid fa-trash-can"></i></button>
+                        ` : ''}
                     </div>
                 `;
                 foodContainer.appendChild(card);
@@ -1753,6 +1758,13 @@
                     { text: "主餐二", checked: false },
                     { text: "點心", checked: false }
                 ];
+            } else if (type === 'food') {
+                appData.proposals.foodOptions.push({
+                    id: "food-o" + (appData.proposals.foodOptions.length + 1),
+                    text: "新點心選項",
+                    emoji: "🍰",
+                    checked: false
+                });
             }
             renderAll();
         }
@@ -1764,6 +1776,8 @@
                 const key = appData.proposals.locationOptions[idx].text;
                 appData.proposals.locationOptions.splice(idx, 1);
                 delete appData.proposals.personalFood[key];
+            } else if (type === 'food') {
+                appData.proposals.foodOptions.splice(idx, 1);
             }
             renderAll();
         }
@@ -1910,24 +1924,40 @@
         }
 
         function editOptionPrompt(type, idx) {
-            const options = type === 'date' ? appData.proposals.dateOptions : appData.proposals.locationOptions;
+            const options = type === 'date' ? appData.proposals.dateOptions : 
+                            (type === 'location' ? appData.proposals.locationOptions : appData.proposals.foodOptions);
             const oldText = options[idx].text;
-            const newText = prompt(`請輸入新的${type === 'date' ? '日期' : '地點'}：`, oldText);
+            const label = type === 'date' ? '日期' : (type === 'location' ? '地點' : '點心名稱');
+            const newText = prompt(`請輸入新的${label}：`, oldText);
             if (newText !== null) {
                 const trimmed = newText.trim();
                 if (trimmed) {
                     if (type === 'date') {
                         syncDateOptionText(idx, trimmed);
-                    } else {
+                    } else if (type === 'location') {
                         syncLocationOptionText(idx, trimmed);
+                    } else if (type === 'food') {
+                        syncFoodOptionText(idx, trimmed);
                     }
                     renderAll();
+                }
+            }
+
+            if (type === 'food') {
+                const oldEmoji = options[idx].emoji;
+                const newEmoji = prompt(`請輸入點心表情符號 (Emoji)：`, oldEmoji);
+                if (newEmoji !== null) {
+                    const trimmedEmoji = newEmoji.trim();
+                    if (trimmedEmoji) {
+                        updateFoodEmoji(idx, trimmedEmoji);
+                    }
                 }
             }
         }
 
         function removeOptionPrompt(type, idx) {
-            const options = type === 'date' ? appData.proposals.dateOptions : appData.proposals.locationOptions;
+            const options = type === 'date' ? appData.proposals.dateOptions : 
+                            (type === 'location' ? appData.proposals.locationOptions : appData.proposals.foodOptions);
             const text = options[idx].text;
             if (confirm(`確定要刪除「${text}」此選項嗎？`)) {
                 removeOption(type, idx);
@@ -2056,12 +2086,39 @@
                         <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
                         <span style="font-weight: bold;">投這一票</span>
                     </div>
+                    <div class="food-card-actions no-print" style="position: absolute; top: 8px; right: 8px; display: flex; gap: 4px;">
+                        <button class="btn-inline-edit" onclick="editOptionPrompt('food', ${idx}); event.stopPropagation();" style="margin: 0;" title="編輯選項">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        ${idx > 1 ? `
+                        <button class="btn-inline-delete" onclick="removeOptionPrompt('food', ${idx}); event.stopPropagation();" style="margin: 0;" title="刪除選項">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        ` : ''}
+                    </div>
                 `;
                 card.onclick = () => {
                     selectFoodCard(idx);
                 };
                 container.appendChild(card);
             });
+
+            // 螢幕上顯示的 "+ 新增點心選項" 按鈕
+            let oldAddRow = document.getElementById('a4-food-add-row');
+            if (oldAddRow) {
+                oldAddRow.remove();
+            }
+            const addBtnRow = document.createElement('div');
+            addBtnRow.id = 'a4-food-add-row';
+            addBtnRow.className = 'no-print';
+            addBtnRow.style.marginTop = '10px';
+            addBtnRow.style.marginBottom = '15px';
+            addBtnRow.innerHTML = `
+                <button class="btn-inline-add" onclick="addCustomOption('food'); event.stopPropagation();">
+                    <i class="fa-solid fa-plus"></i> 新增點心選項
+                </button>
+            `;
+            container.parentNode.insertBefore(addBtnRow, container.nextSibling);
         }
 
         function selectFoodCard(selectedIdx) {
