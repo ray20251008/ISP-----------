@@ -1281,15 +1281,15 @@
                     </table>
 
                     <!-- 提案一 -->
-                    <div class="proposal-header" style="background-color: var(--primary-group);" contenteditable="false">
+                    <div class="proposal-header" id="a4-prop1-header" style="background-color: var(--primary-group);" contenteditable="false">
                         <i class="fa-solid fa-store"></i> 提案一：社區活動店家票選
                     </div>
 
                     <!-- 👥 集合決定 -->
-                    <div class="section-badge badge-group" contenteditable="false">
+                    <div class="section-badge badge-group" id="a4-prop1-badge" contenteditable="false">
                         <i class="fa-solid fa-users"></i> 👥 集合決定：大家一起投票（多數決）
                     </div>
-                    <div class="section-desc" contenteditable="false">說明：請大家共同投票，選出我們這一天要去的地點與日期。</div>
+                    <div class="section-desc" id="a4-prop1-desc" contenteditable="false">說明：請大家共同投票，選出我們這一天要去的地點與日期。</div>
 
                     <table class="record-table">
                         <tr>
@@ -1365,8 +1365,8 @@
                     <table class="division-table" id="a4-table-roles">
                         <tr>
                             <th>
-                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🧺 備料組</div>
-                                <div class="division-role-subtitle">準備食材、洗洗切切、清點用具</div>
+                                <div id="role-prep-title" class="division-role-title" data-role="prep" style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🧺 備料組</div>
+                                <div id="role-prep-subtitle" class="division-role-subtitle" data-role="prep" contenteditable="false">準備食材、洗洗切切、清點用具</div>
                             </th>
                             <td>
                                 <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
@@ -1377,8 +1377,8 @@
                         </tr>
                         <tr>
                             <th>
-                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🍳 烹飪組</div>
-                                <div class="division-role-subtitle">負責開火、煎烤煮炸、注意安全</div>
+                                <div id="role-cook-title" class="division-role-title" data-role="cook" style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🍳 烹飪組</div>
+                                <div id="role-cook-subtitle" class="division-role-subtitle" data-role="cook" contenteditable="false">負責開火、煎烤煮炸、注意安全</div>
                             </th>
                             <td>
                                 <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
@@ -1389,8 +1389,8 @@
                         </tr>
                         <tr>
                             <th>
-                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🥖 組裝組</div>
-                                <div class="division-role-subtitle">用心擺盤、塗抹抹醬、包裝分裝</div>
+                                <div id="role-assembly-title" class="division-role-title" data-role="assembly" style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🥖 組裝組</div>
+                                <div id="role-assembly-subtitle" class="division-role-subtitle" data-role="assembly" contenteditable="false">用心擺盤、塗抹抹醬、包裝分裝</div>
                             </th>
                             <td>
                                 <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
@@ -1401,8 +1401,8 @@
                         </tr>
                         <tr>
                             <th>
-                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🧼 收拾組</div>
-                                <div class="division-role-subtitle">餐後清潔、清洗擦桌、分類倒垃圾</div>
+                                <div id="role-clean-title" class="division-role-title" data-role="clean" style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🧼 收拾組</div>
+                                <div id="role-clean-subtitle" class="division-role-subtitle" data-role="clean" contenteditable="false">餐後清潔、清洗擦桌、分類倒垃圾</div>
                             </th>
                             <td>
                                 <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
@@ -1571,8 +1571,46 @@
             }
         });
 
+        function fillDataDefaults(data) {
+            if (!data.prop1Title) data.prop1Title = "提案一：社區活動店家票選";
+            if (!data.prop1BadgeTitle) data.prop1BadgeTitle = "👥 集合決定：大家一起投票（多數決）";
+            if (!data.prop1Desc) data.prop1Desc = "說明：請大家共同投票，選出我們這一天要去的地點與日期。";
+            if (!data.prop1SelfTitle) data.prop1SelfTitle = "👤 個人決定：我的活動計畫（每個人自己決定）";
+            if (!data.prop1SelfDesc) data.prop1SelfDesc = "說明：想一想，活動當天每個人要吃什麼？預算帶多少？（共4格，人數未定可留空手寫）";
+            if (!data.prop2Title) data.prop2Title = "提案二：點心餐點製作票選";
+            if (!data.prop2BadgeTitle) data.prop2BadgeTitle = "👥 集合決定：大家一起投票（多數決）";
+            if (!data.prop2Desc) data.prop2Desc = "說明：請在你想動手做的點心卡片上打勾（選一個）。";
+            if (!data.rolesTitle) data.rolesTitle = "👨‍🍳 點心製作工作分配表 ✍️";
+            if (!data.rolesDesc) data.rolesDesc = "說明：請在欄位中寫上自己最想嘗試的任務名稱（學生可直接手寫填寫）。";
+            
+            if (!data.proposals) data.proposals = {};
+            if (!data.proposals.division) data.proposals.division = {};
+            
+            const defaultRoles = {
+                prep: { title: "🧺 備料組", subtitle: "準備食材、洗洗切切、清點用具" },
+                cook: { title: "🍳 烹飪組", subtitle: "負責開火、煎烤煮炸、注意安全" },
+                assembly: { title: "🥖 組裝組", subtitle: "用心擺盤、塗抹抹醬、包裝分裝" },
+                clean: { title: "🧼 收拾組", subtitle: "餐後清潔、清洗擦桌、分類倒垃圾" }
+            };
+            
+            for (let role in defaultRoles) {
+                if (!data.proposals.division[role]) {
+                    data.proposals.division[role] = { name: "", text: "" };
+                }
+                if (!data.proposals.division[role].title) {
+                    data.proposals.division[role].title = defaultRoles[role].title;
+                }
+                if (!data.proposals.division[role].subtitle) {
+                    data.proposals.division[role].subtitle = defaultRoles[role].subtitle;
+                }
+            }
+        }
+
         // --- 視圖渲染器 ---
         function renderAll() {
+            // 0. 填補預設值
+            fillDataDefaults(appData);
+
             // 1. 同步頂部工具列標題
             document.getElementById('toolbar-meeting-title').innerText = appData.meetingTitle;
             document.getElementById('a4-title-display').innerText = appData.meetingTitle.split('').join(' ');
@@ -1599,6 +1637,37 @@
 
             // 3. 渲染編輯器選項表單
             renderEditorOptions();
+
+            // 3.5. 同步所有標題與說明文字到 A4
+            const a4Prop1Header = document.getElementById('a4-prop1-header');
+            if (a4Prop1Header) a4Prop1Header.innerHTML = `<i class="fa-solid fa-store"></i> ${appData.prop1Title}`;
+            
+            const a4Prop1Badge = document.getElementById('a4-prop1-badge');
+            if (a4Prop1Badge) a4Prop1Badge.innerHTML = `<i class="fa-solid fa-users"></i> ${appData.prop1BadgeTitle}`;
+            
+            const a4Prop1Desc = document.getElementById('a4-prop1-desc');
+            if (a4Prop1Desc) a4Prop1Desc.innerText = appData.prop1Desc;
+            
+            const a4SectionSelf = document.getElementById('a4-section-self');
+            if (a4SectionSelf) a4SectionSelf.innerHTML = `<i class="fa-solid fa-user"></i> ${appData.prop1SelfTitle}`;
+            
+            const a4DescSelf = document.getElementById('a4-desc-self');
+            if (a4DescSelf) a4DescSelf.innerText = appData.prop1SelfDesc;
+
+            const a4Prop2Header = document.getElementById('a4-prop2-header');
+            if (a4Prop2Header) a4Prop2Header.innerHTML = `<i class="fa-solid fa-cookie-bite"></i> ${appData.prop2Title}`;
+            
+            const a4Prop2Badge = document.getElementById('a4-prop2-badge');
+            if (a4Prop2Badge) a4Prop2Badge.innerHTML = `<i class="fa-solid fa-users"></i> ${appData.prop2BadgeTitle}`;
+            
+            const a4Prop2Desc = document.getElementById('a4-prop2-desc');
+            if (a4Prop2Desc) a4Prop2Desc.innerText = appData.prop2Desc;
+            
+            const a4RolesBadge = document.getElementById('a4-roles-badge');
+            if (a4RolesBadge) a4RolesBadge.innerHTML = `<i class="fa-solid fa-people-carry-box"></i> ${appData.rolesTitle}`;
+            
+            const a4RolesDesc = document.getElementById('a4-roles-desc');
+            if (a4RolesDesc) a4RolesDesc.innerText = appData.rolesDesc;
 
             // 4. 渲染 A4 預覽畫面中的動態項目
             renderA4DateOptions();
@@ -2128,10 +2197,16 @@
             renderAll();
         }
 
-        // F. 渲染分工表文字輸入框 (名字由學生手寫或直接輸入)
+        // F. 渲染分工表文字輸入框與角色標題 (名字由學生手寫或直接輸入)
         function renderA4DivisionInputs() {
             const roles = ['prep', 'cook', 'assembly', 'clean'];
             roles.forEach(role => {
+                const titleEl = document.getElementById(`role-${role}-title`);
+                const subtitleEl = document.getElementById(`role-${role}-subtitle`);
+                
+                if (titleEl) titleEl.innerText = appData.proposals.division[role].title || '';
+                if (subtitleEl) subtitleEl.innerText = appData.proposals.division[role].subtitle || '';
+
                 const inputName = document.getElementById(`input-role-${role}-name`);
                 const inputText = document.getElementById(`input-role-${role}-text`);
                 
@@ -2235,6 +2310,45 @@
                 document.getElementById('edit-title').value = titleText;
             }
             
+            // 儲存提案一之變更
+            const prop1Header = document.getElementById('a4-prop1-header');
+            if (prop1Header) appData.prop1Title = prop1Header.innerText.trim();
+            const prop1Badge = document.getElementById('a4-prop1-badge');
+            if (prop1Badge) appData.prop1BadgeTitle = prop1Badge.innerText.trim();
+            const prop1Desc = document.getElementById('a4-prop1-desc');
+            if (prop1Desc) appData.prop1Desc = prop1Desc.innerText.trim();
+            const prop1Self = document.getElementById('a4-section-self');
+            if (prop1Self) appData.prop1SelfTitle = prop1Self.innerText.trim();
+            const prop1SelfDesc = document.getElementById('a4-desc-self');
+            if (prop1SelfDesc) appData.prop1SelfDesc = prop1SelfDesc.innerText.trim();
+
+            // 儲存提案二與分工表之變更
+            const prop2Header = document.getElementById('a4-prop2-header');
+            if (prop2Header) appData.prop2Title = prop2Header.innerText.trim();
+            const prop2Badge = document.getElementById('a4-prop2-badge');
+            if (prop2Badge) appData.prop2BadgeTitle = prop2Badge.innerText.trim();
+            const prop2Desc = document.getElementById('a4-prop2-desc');
+            if (prop2Desc) appData.prop2Desc = prop2Desc.innerText.trim();
+            const rolesBadge = document.getElementById('a4-roles-badge');
+            if (rolesBadge) appData.rolesTitle = rolesBadge.innerText.trim();
+            const rolesDesc = document.getElementById('a4-roles-desc');
+            if (rolesDesc) appData.rolesDesc = rolesDesc.innerText.trim();
+
+            // 儲存分工表角色名稱與職責描述
+            document.querySelectorAll('.division-role-title').forEach(el => {
+                const role = el.getAttribute('data-role');
+                if (role && appData.proposals.division[role]) {
+                    appData.proposals.division[role].title = el.innerText.trim();
+                }
+            });
+            document.querySelectorAll('.division-role-subtitle').forEach(el => {
+                const role = el.getAttribute('data-role');
+                if (role && appData.proposals.division[role]) {
+                    appData.proposals.division[role].subtitle = el.innerText.trim();
+                }
+            });
+
+            // 儲存點心名稱（舊卡片相容性）
             document.querySelectorAll('#a4-food-container .food-card').forEach((card, idx) => {
                 const titleEl = card.querySelector('.food-title');
                 if (titleEl && appData.proposals.foodOptions[idx]) {
