@@ -1118,6 +1118,7 @@
             <div class="draft-ops">
                 <button class="btn-premium btn-premium-primary" onclick="saveCurrentDraft()"><i class="fa-solid fa-floppy-disk"></i> 儲存目前會議紀錄</button>
                 <button class="btn-premium btn-premium-outline" onclick="loadDefaultTemplate()" style="color:#fff; border-color:rgba(255,255,255,0.15);"><i class="fa-solid fa-rotate-left"></i> 載入官方演示範本</button>
+                <button class="btn-premium btn-premium-outline" onclick="loadBlankTemplate()" style="color:#fff; border-color:rgba(255,255,255,0.15); margin-top:5px;"><i class="fa-solid fa-file-signature"></i> 回復初始空白版</button>
             </div>
         </aside>
 
@@ -1185,7 +1186,7 @@
 
                     <!-- 提案一 -->
                     <div class="proposal-header" style="background-color: var(--primary-group);" contenteditable="false">
-                        <i class="fa-solid fa-store"></i> 提案一：5 月 7 日社區活動店家票選
+                        <i class="fa-solid fa-store"></i> 提案一：社區活動店家票選
                     </div>
 
                     <!-- 👥 集合決定 -->
@@ -1246,7 +1247,7 @@
                 <!-- A4 第二頁：提案二與分工表 -->
                 <div id="print-area-2" class="page-container page-break">
                     <div class="proposal-header" id="a4-prop2-header" style="background-color: var(--primary-teal);" contenteditable="false">
-                        <i class="fa-solid fa-cookie-bite"></i> 提案二：5 月 8 日點心餐點製作票選
+                        <i class="fa-solid fa-cookie-bite"></i> 提案二：點心餐點製作票選
                     </div>
                     
                     <div class="section-badge badge-group" id="a4-prop2-badge" style="background-color: var(--primary-teal);" contenteditable="false">
@@ -1334,11 +1335,11 @@
         let currentDraftId = null;
         let textEditMode = false; // 是否開啟文字修改模式
         
-        // 預設資料庫結構
-        let appData = {
+        // 演示範本數據 (備份以利載入)
+        const demoTemplateData = {
             meetingTitle: "班級會議紀錄",
-            printScale: "print-normal", // 版面縮放
-            pageBreaks: {               // 強制分頁點
+            printScale: "print-normal",
+            pageBreaks: {
                 self: false,
                 prop2: true,
                 roles: false
@@ -1353,17 +1354,14 @@
             },
             roster: ["曾宇彤", "林育萱", "廖志偉", "王小明", "張美玲"],
             proposals: {
-                // 提案一：日期投票選項
                 dateOptions: [
                     { id: "date-o1", text: "5月7日 (星期四)", checked: true },
                     { id: "date-o2", text: "其他（請手寫日期）", checked: false, isCustomText: true, customText: "" }
                 ],
-                // 提案一：我想去哪裡 (多數決)
                 locationOptions: [
                     { id: "loc-o1", text: "🥩 小叮噹牛排", checked: true },
                     { id: "loc-o2", text: "🥟 八方雲集", checked: false }
                 ],
-                // 提案一：個人自決 - 食物選項參考
                 personalFood: {
                     "🥩 小叮噹牛排": [
                         { text: "牛排", checked: false },
@@ -1376,19 +1374,16 @@
                         { text: "麵食", checked: false }
                     ]
                 },
-                // 提案一：4個個人決定卡片 (姓名、餐點、金額)
                 personalDecisions: [
                     { name: "曾宇彤", order: "牛排", cost: "200" },
                     { name: "林育萱", order: "豬排", cost: "180" },
                     { name: "廖志偉", order: "雞排", cost: "190" },
                     { name: "王小明", order: "", cost: "" }
                 ],
-                // 提案二：多數決點心卡片
                 foodOptions: [
                     { id: "food-o1", text: "地瓜 Q 餅", emoji: "🍠🟡", checked: true },
                     { id: "food-o2", text: "炒麵麵包", emoji: "🌭🥢", checked: false }
                 ],
-                // 提案二：分工指派名單 (學生填寫姓名與備註)
                 division: {
                     prep: { name: "曾宇彤", text: "" },
                     cook: { name: "廖志偉", text: "社工協助安全" },
@@ -1398,8 +1393,64 @@
             }
         };
 
-        // 演示範本數據 (備份以利載入)
-        const demoTemplate = JSON.parse(JSON.stringify(appData));
+        // 預設空白資料庫結構
+        let appData = {
+            meetingTitle: "班級會議紀錄",
+            printScale: "print-normal", // 版面縮放
+            pageBreaks: {               // 強制分頁點
+                self: false,
+                prop2: true,
+                roles: false
+            },
+            info: {
+                location: "",
+                date: "",
+                chairman: "",
+                recorder: "",
+                time: "",
+                supporter: ""
+            },
+            roster: [],
+            proposals: {
+                // 提案一：日期投票選項
+                dateOptions: [
+                    { id: "date-o1", text: "____月____日 (星期____)", checked: false },
+                    { id: "date-o2", text: "其他：________________", checked: false, isCustomText: true, customText: "" }
+                ],
+                // 提案一：我想去哪裡 (多數決)
+                locationOptions: [
+                    { id: "loc-o1", text: "選項一：________________", checked: false },
+                    { id: "loc-o2", text: "選項二：________________", checked: false }
+                ],
+                // 提案一：個人自決 - 食物選項參考
+                personalFood: {
+                    "選項一：________________": [],
+                    "選項二：________________": []
+                },
+                // 提案一：4個個人決定卡片 (姓名、餐點、金額)
+                personalDecisions: [
+                    { name: "", order: "", cost: "" },
+                    { name: "", order: "", cost: "" },
+                    { name: "", order: "", cost: "" },
+                    { name: "", order: "", cost: "" }
+                ],
+                // 提案二：多數決點心卡片
+                foodOptions: [
+                    { id: "food-o1", text: "選項一：________________", emoji: "🧁", checked: false },
+                    { id: "food-o2", text: "選項二：________________", emoji: "🍩", checked: false }
+                ],
+                // 提案二：分工指派名單 (學生填寫姓名與備註)
+                division: {
+                    prep: { name: "", text: "" },
+                    cook: { name: "", text: "" },
+                    assembly: { name: "", text: "" },
+                    clean: { name: "", text: "" }
+                }
+            }
+        };
+
+        // 複製一份預設空白結構做為還原使用
+        const blankTemplateData = JSON.parse(JSON.stringify(appData));
 
         // --- 初始化頁面 ---
         window.addEventListener('DOMContentLoaded', () => {
@@ -2081,7 +2132,16 @@
 
         function loadDefaultTemplate() {
             if (confirm("這將會覆蓋您目前未存檔的輸入內容，確定要載入演示範本嗎？")) {
-                appData = JSON.parse(JSON.stringify(demoTemplate));
+                appData = JSON.parse(JSON.stringify(demoTemplateData));
+                currentDraftId = null;
+                renderAll();
+                loadDraftList();
+            }
+        }
+
+        function loadBlankTemplate() {
+            if (confirm("這將會覆蓋您目前未存檔的輸入內容，確定要回復為初始空白版嗎？")) {
+                appData = JSON.parse(JSON.stringify(blankTemplateData));
                 currentDraftId = null;
                 renderAll();
                 loadDraftList();

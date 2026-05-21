@@ -1,1201 +1,2357 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANTIGRAVITY ISP Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <title>班級會議紀錄（易讀版智慧設計系統）</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
+        /* 全域變數與主題設計 */
         :root {
-            /* Updated to Soft Purple/Blue Gradient */
-            --primary-gradient: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
-            --bg-color: #f4f7fb;
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --text-main: #1a202c;
-            --text-muted: #4a5568;
-            --border-radius: 32px; /* 3xl border radius */
-            --shadow: 0 20px 50px rgba(142, 197, 252, 0.15); /* Stronger shadow */
+            --sidebar-bg: #0f172a;
+            --sidebar-header: #1e293b;
+            --sidebar-border: rgba(255, 255, 255, 0.08);
+            --sidebar-text: #f8fafc;
+            --sidebar-text-muted: #94a3b8;
             
-            /* Status Tag Colors */
-            --status-red-bg: rgba(252, 129, 129, 0.15);
-            --status-red-text: #c53030;
-            --status-green-bg: rgba(104, 211, 145, 0.15);
-            --status-green-text: #276749;
-            --status-gray-bg: rgba(203, 213, 224, 0.3);
-            --status-gray-text: #4a5568;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: rgba(99, 102, 241, 0.1);
             
-            --btn-blue: #8EC5FC;
+            --bg-canvas: #f1f5f9;
+            --primary-group: #4f46e5;      /* 團體多數決：皇家藍/紫 */
+            --primary-group-light: #e0e7ff;
+            --primary-self: #ea580c;       /* 個人決定：活潑橘 */
+            --primary-self-light: #ffedd5;
+            --primary-teal: #0d9488;       /* 點心票選：莫蘭迪綠 */
+            --primary-teal-light: #ccfbf1;
+            --text-dark: #0f172a;
+            --border-color: #cbd5e1;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         * {
             box-sizing: border-box;
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            padding-bottom: 50px;
-        }
-
-        header {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 20px 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            background-color: var(--bg-canvas);
+            color: var(--text-dark);
+            height: 100vh;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            overflow: hidden;
         }
 
-        h1 {
-            font-size: 28px;
-            font-weight: 800; /* Bolder */
-            letter-spacing: -0.5px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header-actions {
+        /* 雙欄式佈局 */
+        .app-container {
             display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 12px;
-            background: #edf2f7;
-            padding: 5px;
-            border-radius: 40px;
-        }
-
-        .tab-btn {
-            padding: 10px 24px;
-            border: none;
-            background: transparent;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 700;
-            color: var(--text-muted);
-            transition: all 0.3s ease;
-            letter-spacing: 0.5px;
-        }
-
-        .tab-btn.active {
-            background: white;
-            color: #6b46c1; /* Match purple theme */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        .btn-add-goal {
-            padding: 12px 24px;
-            border: none;
-            background: var(--primary-gradient);
-            color: white;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(142, 197, 252, 0.3);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-add-goal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px rgba(142, 197, 252, 0.4);
-        }
-
-        .container {
-            max-width: 1300px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 35px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            box-shadow: var(--shadow);
+            width: 100vw;
+            height: 100vh;
             position: relative;
-            border: 1px solid rgba(255,255,255,0.6);
-            backdrop-filter: blur(20px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* 左側編輯面板 */
+        .editor-sidebar {
+            width: 420px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            border-right: 1px solid var(--sidebar-border);
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
+            z-index: 10;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 25px 60px rgba(142, 197, 252, 0.25);
-        }
-
-        .status-badge {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            padding: 6px 14px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+        .sidebar-header {
+            padding: 20px;
+            background-color: var(--sidebar-header);
+            border-bottom: 1px solid var(--sidebar-border);
             display: flex;
             align-items: center;
-            gap: 4px;
-        }
-        
-        .status-badge::before {
-            content: '';
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
+            justify-content: space-between;
         }
 
-        .status-red { background: var(--status-red-bg); color: var(--status-red-text); }
-        .status-red::before { background: var(--status-red-text); }
-        .status-green { background: var(--status-green-bg); color: var(--status-green-text); }
-        .status-green::before { background: var(--status-green-text); }
-        .status-gray { background: var(--status-gray-bg); color: var(--status-gray-text); }
-        .status-gray::before { background: var(--status-gray-text); }
-
-        .card-header {
-            margin-bottom: 25px;
-            padding-right: 80px;
-            padding-left: 30px;
-        }
-
-        .domain-tag {
-            display: inline-block;
-            padding: 6px 14px;
-            background: #f1f5f9;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 12px;
-            letter-spacing: 0.5px;
-        }
-
-        .goal-title {
+        .sidebar-header h2 {
             font-size: 20px;
             font-weight: 800;
-            line-height: 1.4;
-            color: #1a202c;
-            letter-spacing: -0.3px;
-        }
-
-        .section-title {
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 8px;
-            margin-top: 20px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .content-text {
-            font-size: 15px;
-            line-height: 1.7;
-            color: #2d3748;
-            background: rgba(247, 250, 252, 0.6);
-            padding: 15px 20px;
-            border-radius: 16px;
-            border: 1px solid rgba(226, 232, 240, 0.5);
-            flex-grow: 1;
-        }
-
-        .progress-section {
-            margin-top: 25px;
-            padding-top: 25px;
-            border-top: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .progress-bar-bg {
-            height: 10px;
-            background: #edf2f7;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--primary-gradient);
-            width: 0%;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 10px;
-        }
-
-        .progress-text {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        .actions {
-            margin-top: 25px;
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.2s;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            flex: 1;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn-edit {
-            background: #f1f5f9;
-            color: #334155;
-        }
-        
-        .btn-edit:hover { background: #e2e8f0; }
-
-        .btn-records {
-            background: white;
-            color: #6b46c1;
-            border: 1px solid #e9d8fd;
-        }
-        
-        .btn-records:hover { background: #faf5ff; }
-
-        .btn-delete {
-            background: #fff5f5;
-            color: #c53030;
-            border: 1px solid #fed7d7;
-            padding: 10px;
-            flex: 0 0 auto;
-        }
-        
-        .btn-delete:hover {
-            background: #fed7d7;
-            color: #9b2c2c;
-        }
-
-        .drag-handle {
-            position: absolute;
-            top: 25px;
-            left: 20px;
-            cursor: grab;
-            color: #cbd5e0;
-            font-size: 20px;
-            padding: 5px;
-            line-height: 1;
-            transition: color 0.2s;
-        }
-        
-        .drag-handle:hover {
-            color: #718096;
-        }
-        
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-
-        .sortable-ghost {
-            opacity: 0.4;
-            background: #edf2f7;
-            border: 2px dashed #cbd5e0;
-            box-shadow: none !important;
-            transform: none !important;
-        }
-
-        /* Expanded Records */
-        .records-area {
-            display: none;
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-            background: rgba(247, 250, 252, 0.8);
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .records-area.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .month-record {
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed #cbd5e0;
-        }
-
-        .month-record:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .month-title {
-            font-weight: 800;
-            font-size: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            color: #2d3748;
-        }
-
-        .month-desc-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #718096;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-        
-        .month-desc {
-            font-size: 14px;
-            color: #4a5568;
-            margin-bottom: 10px;
-            line-height: 1.5;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        /* Evaluation Section */
-        .evaluation-section {
-            margin-top: 60px;
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.6);
-        }
-
-        .evaluation-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            resize: vertical;
-            font-family: inherit;
-            font-size: 15px;
-            line-height: 1.6;
-            transition: all 0.3s;
-            background: #f8fafc;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #b794f4;
-            background: white;
-            box-shadow: 0 0 0 4px rgba(183, 148, 244, 0.1);
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .modal {
-            background: white;
-            padding: 40px;
-            border-radius: 32px;
-            width: 100%;
-            max-width: 700px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-            position: relative;
-        }
-
-        .modal.active {
-            display: block;
-            animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.95) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        
-        .modal-title {
-            font-size: 24px;
-            font-weight: 800;
-            color: #1a202c;
-        }
-        
-        .btn-close-icon {
-            background: #f1f5f9;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        
-        .btn-close-icon:hover { background: #e2e8f0; }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 700;
-            font-size: 14px;
-            color: #4a5568;
-        }
-
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-family: inherit;
-            font-size: 15px;
-            transition: all 0.2s;
-            background: #f8fafc;
-        }
-        
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-            outline: none;
-            border-color: #b794f4;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(183, 148, 244, 0.1);
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #edf2f7;
-        }
-
-        .btn-save { 
-            background: var(--primary-gradient); 
-            color: white; 
-            padding: 12px 28px;
-            border-radius: 12px;
-            font-size: 15px;
-        }
-        .btn-save:hover { box-shadow: 0 10px 20px rgba(183, 148, 244, 0.3); transform: translateY(-2px); }
-        
-        .btn-cancel { 
-            background: #f1f5f9; 
-            color: #4a5568; 
-            padding: 12px 28px;
-            border-radius: 12px;
-            font-size: 15px;
-        }
-        
-        .month-inputs {
-            display: grid;
-            gap: 20px;
-        }
-        
-        .month-input-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 20px;
-        }
-        
-        .month-input-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-weight: 800;
-            font-size: 16px;
-        }
-        
-        .rate-input-group {
+            letter-spacing: 1px;
+            color: #fff;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
-        .rate-input-group input {
-            width: 80px;
-            padding: 8px 12px;
+
+        .sidebar-header h2 span {
+            font-size: 12px;
+            background-color: var(--accent-color);
+            padding: 2px 8px;
+            border-radius: 20px;
         }
 
-        /* Login Overlay */
-        .login-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(244, 247, 251, 0.95);
-            backdrop-filter: blur(15px);
-            z-index: 9999;
+        /* 頁籤控制 */
+        .sidebar-tabs {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: #111827;
+            border-bottom: 1px solid var(--sidebar-border);
         }
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 32px;
-            box-shadow: 0 25px 50px rgba(142, 197, 252, 0.25);
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: var(--sidebar-text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
             text-align: center;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid rgba(255,255,255,0.6);
         }
-        .login-box h2 {
-            margin-bottom: 10px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 28px;
-            font-weight: 800;
+
+        .tab-btn:hover {
+            color: #fff;
+            background-color: rgba(255,255,255,0.02);
         }
-        .login-box input {
+
+        .tab-btn.active {
+            color: #fff;
+            border-bottom-color: var(--accent-color);
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        /* 編輯面板內容區 */
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* 編輯器群組與表單元件 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--sidebar-text-muted);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
             width: 100%;
-            padding: 14px 18px;
-            margin-bottom: 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            padding: 10px 14px;
+            background-color: #1e293b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
             font-size: 15px;
-            background: #f8fafc;
+            outline: none;
             transition: all 0.2s;
         }
-        .login-box input:focus {
-            outline: none;
-            border-color: #8EC5FC;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(142, 197, 252, 0.2);
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--accent-light);
         }
-        .login-box button {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: 12px;
+
+        /* 草稿列表與操作 */
+        .draft-card {
+            background-color: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .draft-card:hover {
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .draft-card.active {
+            border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.15);
+        }
+
+        .draft-title {
             font-weight: 700;
             font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(142, 197, 252, 0.3);
-        }
-        .login-box button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px rgba(142, 197, 252, 0.4);
+            color: #fff;
+            margin-bottom: 6px;
         }
 
-        .btn-scan {
-            padding: 4px 10px;
-            background: #e9d8fd;
-            color: #553c9a;
-            border: none;
-            border-radius: 8px;
+        .draft-meta {
             font-size: 12px;
-            font-weight: 700;
+            color: var(--sidebar-text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .draft-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-action-small {
+            background: none;
+            border: none;
+            color: var(--sidebar-text-muted);
             cursor: pointer;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.1s;
+        }
+
+        .btn-action-small:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .btn-action-delete:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        /* 儲存草稿控制區 */
+        .draft-ops {
+            padding: 20px;
+            border-top: 1px solid var(--sidebar-border);
+            background-color: var(--sidebar-header);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 右側畫布區域 */
+        .main-canvas {
+            flex-grow: 1;
+            height: 100vh;
+            overflow-y: auto;
+            background-color: var(--bg-canvas);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 頂部固定工具列 */
+        .canvas-toolbar {
+            background-color: #fff;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            z-index: 5;
+            position: sticky;
+            top: 0;
+        }
+
+        .canvas-toolbar .toolbar-left h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .canvas-toolbar .toolbar-left p {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* 按鈕視覺樣式 */
+        .btn-premium {
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-premium-primary {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #4f46e5 100%);
+            color: #fff;
+        }
+
+        .btn-premium-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-premium-secondary {
+            background-color: #0f172a;
+            color: #fff;
+        }
+
+        .btn-premium-secondary:hover {
+            background-color: #1e293b;
+            transform: translateY(-1px);
+        }
+
+        .btn-premium-word {
+            background-color: #0284c7;
+            color: #fff;
+        }
+
+        .btn-premium-word:hover {
+            background-color: #0369a1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+        }
+
+        .btn-premium-danger {
+            background-color: #ef4444;
+            color: #fff;
+        }
+
+        .btn-premium-danger:hover {
+            background-color: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-premium-outline {
+            background-color: transparent;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            box-shadow: none;
+        }
+
+        .btn-premium-outline:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        /* A4 紙張列印排版 */
+        .a4-viewport {
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .page-container {
+            width: 210mm;
+            min-height: 297mm;
+            background-color: #fff;
+            padding: 25mm 20mm;
+            box-shadow: var(--shadow-lg);
+            border-radius: 8px;
+            position: relative;
+            box-sizing: border-box;
+            border: 1px solid #e2e8f0;
             transition: all 0.2s;
+        }
+
+        .page-container:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* 標題區域與雙線 */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 5px double var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 38px;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            color: #0f172a;
+            letter-spacing: 3px;
+        }
+
+        /* 會議基本資料表格 */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        .info-table td {
+            border: 2px solid var(--border-color);
+            padding: 10px 14px;
+            font-size: 17px;
+            width: 35%;
+        }
+
+        .info-label {
+            background-color: #f1f5f9;
+            font-weight: bold;
+            color: #334155;
+            text-align: center;
+            width: 15% !important;
+        }
+
+        /* 提案標題區 */
+        .proposal-header {
+            background-color: #0f172a;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 21px;
+            font-weight: bold;
+            margin-top: 25px;
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 12px;
         }
-        .btn-scan:hover {
-            background: #d6bcfa;
+
+        /* 區塊副標：多數決 / 個人決定 */
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 19px;
+            font-weight: bold;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            color: white;
         }
-        .btn-scan:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+
+        .badge-group {
+            background-color: var(--primary-group);
+        }
+
+        .badge-self {
+            background-color: var(--primary-self);
+            margin-top: 25px;
+        }
+
+        .section-desc {
+            font-size: 17px;
+            color: #475569;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        /* 核心表格樣式 */
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .record-table th, .record-table td {
+            border: 3px solid var(--border-color);
+            padding: 16px;
+            vertical-align: middle;
+        }
+
+        /* 欄寬控制 */
+        .col-visual {
+            width: 32%;
+            background-color: #f8fafc;
+        }
+
+        .col-option {
+            width: 68%;
+        }
+
+        /* 圖卡容器 */
+        .visual-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .visual-icon {
+            width: 70px;
+            height: 70px;
+            background-color: white;
+            border: 3px solid #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .visual-text {
+            font-size: 20px;
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        /* 勾選清單樣式 */
+        .option-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 19px;
+            cursor: pointer;
+            user-select: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.15s;
+            border: 2px solid transparent;
+        }
+
+        .option-item:hover {
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
+        }
+
+        .checkbox-custom {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #64748b;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: transparent;
+            font-weight: bold;
+            flex-shrink: 0;
+            transition: all 0.15s;
+            background-color: white;
+        }
+
+        /* 勾選狀態 */
+        .option-item.checked .checkbox-custom {
+            border-color: var(--primary-group);
+            background-color: var(--primary-group-light);
+            color: var(--primary-group);
+            transform: scale(1.05);
+        }
+
+        /* 輸入框底線 */
+        .input-line {
+            border: none;
+            border-bottom: 2px solid #64748b;
+            font-size: 19px;
+            padding: 2px 8px;
+            width: 180px;
+            outline: none;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-self);
+            background: transparent;
+            transition: border-color 0.2s;
+        }
+
+        .input-line:focus {
+            border-bottom-color: var(--accent-color);
+        }
+
+        /* 4個學生自決卡片排版 */
+        .personal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .personal-card {
+            border: 3px solid var(--primary-self);
+            border-radius: 12px;
+            padding: 14px;
+            background-color: #fffaf7;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .personal-card-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary-self);
+            border-bottom: 2px dashed #ffedd5;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .personal-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .personal-field input {
+            flex-grow: 1;
+            font-size: 16px;
+            padding: 2px 6px;
+        }
+
+        /* 提案二：點心投票與分工 */
+        .food-vote-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .food-card {
+            border: 3px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: white;
+            position: relative;
+        }
+
+        .food-card:hover {
+            border-color: var(--primary-teal);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .food-card.selected {
+            border-color: var(--primary-teal);
+            background-color: var(--primary-teal-light);
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+        }
+
+        .food-emoji {
+            font-size: 50px;
+            margin-bottom: 8px;
+        }
+
+        .food-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+
+        .food-card .option-item {
+            justify-content: center;
+            pointer-events: none;
+            padding: 4px;
+            margin: 0 auto;
+            width: 80%;
+        }
+
+        .food-card.selected .checkbox-custom {
+            border-color: var(--primary-teal);
+            background-color: white;
+            color: var(--primary-teal);
+        }
+
+        /* 分工表格 */
+        .division-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .division-table th, .division-table td {
+            border: 3px solid var(--border-color);
+            padding: 14px;
+        }
+
+        .division-table th {
+            background-color: #f1f5f9;
+            font-size: 19px;
+            font-weight: bold;
+            width: 32%;
+            text-align: left;
+        }
+
+        .division-role-subtitle {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: normal;
+            margin-top: 4px;
+        }
+
+        /* 友善提示區 */
+        .tip-box {
+            background-color: #fffbeb;
+            border-left: 5px solid #f59e0b;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-top: 20px;
+            color: #92400e;
+        }
+
+        /* 手機板滑動按鈕 */
+        .floating-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            font-size: 24px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 文字編輯模式特殊樣式 */
+        .edit-mode-active [contenteditable="true"] {
+            outline: 2px dashed var(--accent-color) !important;
+            outline-offset: 4px;
+            cursor: text;
+        }
+        .edit-mode-active [contenteditable="true"]:hover {
+            background-color: var(--accent-light);
+        }
+
+        /* 強制分頁樣式 */
+        .forced-page-break {
+            page-break-before: always !important;
+            break-before: page !important;
+        }
+
+        /* 避免表格與方塊在列印時被切成兩半 */
+        .record-table, 
+        .personal-grid,
+        .personal-card,
+        .food-vote-container, 
+        .food-card,
+        .division-table,
+        .tip-box {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* --- 列印縮放（緊湊版）額外 CSS --- */
+        .print-compact .page-container {
+            padding: 12mm 12mm !important;
+        }
+        .print-compact .header {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+        }
+        .print-compact .header h1 {
+            font-size: 30px;
+        }
+        .print-compact .info-table,
+        .print-compact .record-table,
+        .print-compact .division-table {
+            margin-bottom: 12px;
+        }
+        .print-compact .info-table td,
+        .print-compact .record-table th,
+        .print-compact .record-table td,
+        .print-compact .division-table th,
+        .print-compact .division-table td {
+            padding: 8px 12px !important;
+            font-size: 16px !important;
+        }
+        .print-compact .visual-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+        }
+        .print-compact .visual-text {
+            font-size: 17px;
+        }
+        .print-compact .option-item {
+            font-size: 16px;
+            padding: 4px 8px;
+            gap: 8px;
+        }
+        .print-compact .checkbox-custom {
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+        }
+        .print-compact .proposal-header {
+            margin-top: 12px;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            font-size: 18px;
+        }
+        .print-compact .section-badge {
+            font-size: 16px;
+            padding: 6px 12px;
+            margin-bottom: 8px;
+        }
+        .print-compact .badge-self {
+            margin-top: 12px;
+        }
+        .print-compact .section-desc {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .print-compact .food-vote-container {
+            gap: 12px;
+        }
+        .print-compact .food-emoji {
+            font-size: 36px;
+        }
+        .print-compact .food-title {
+            font-size: 17px;
+            margin-bottom: 6px;
+        }
+        .print-compact .tip-box {
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        /* 緊湊間距：學生卡片額外縮放 */
+        .print-compact .personal-grid {
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .print-compact .personal-card {
+            padding: 8px 10px;
+            gap: 6px;
+        }
+        .print-compact .personal-card-title {
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+        .print-compact .personal-field {
+            font-size: 14px;
+            gap: 6px;
+        }
+        .print-compact .personal-field input {
+            font-size: 14px;
+        }
+
+        /* 響應式佈局調整 */
+        @media (max-width: 1100px) {
+            .app-container {
+                flex-direction: column;
+            }
+            .editor-sidebar {
+                width: 100%;
+                height: 40%;
+                border-right: none;
+                border-bottom: 1px solid var(--sidebar-border);
+            }
+            .main-canvas {
+                height: 60%;
+            }
+            .page-container {
+                width: 100%;
+                min-height: auto;
+                padding: 15mm 10mm;
+            }
+            .a4-viewport {
+                padding: 20px 10px;
+            }
         }
 
         @media (max-width: 768px) {
-            .evaluation-grid {
-                grid-template-columns: 1fr;
+            .editor-sidebar {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 280px;
+                height: 100%;
+                transform: translateX(-100%);
             }
-            header {
-                flex-direction: column;
-                gap: 20px;
+            .editor-sidebar.open {
+                transform: translateX(0);
+            }
+            .main-canvas {
+                height: 100%;
+            }
+            .floating-toggle {
+                display: flex;
+            }
+        }
+
+        /* 列印用 CSS */
+        @media print {
+            body {
+                background-color: white !important;
+                color: black !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            .app-container {
+                display: block !important;
+                height: auto !important;
+            }
+            .editor-sidebar, .canvas-toolbar, .floating-toggle, .no-print {
+                display: none !important;
+            }
+            .main-canvas {
+                height: auto !important;
+                overflow: visible !important;
+                background-color: white !important;
+            }
+            .a4-viewport {
+                padding: 0 !important;
+                display: block !important;
+            }
+            .page-container {
+                width: 100% !important;
+                height: auto !important; /* 改為自動，避免固定高度導致剪裁 */
+                min-height: 297mm !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 15mm 15mm !important;
+                page-break-after: always !important;
+                margin: 0 !important;
+            }
+            /* 隱藏輸入框與下拉選單的邊框，讓列印版面像普通文件 */
+            input, select {
+                border: none !important;
+                background: transparent !important;
+                appearance: none !important;
+                -webkit-appearance: none !important;
+                -moz-appearance: none !important;
+                pointer-events: none !important;
+                font-weight: bold;
+                color: black !important;
+                text-align-last: center; /* select 文字置中 */
+            }
+            .input-line {
+                border-bottom: 1px solid black !important;
+            }
+            /* 分頁強制斷行 */
+            .page-break {
+                page-break-before: always !important;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Login Overlay -->
-    <div class="login-overlay" id="loginOverlay">
-        <div class="login-box">
-            <h2>系統登入</h2>
-            <p style="color: #718096; margin-bottom: 25px; font-size: 14px; font-weight: 500;">請輸入密碼以存取 ANTIGRAVITY ISP 儀表板</p>
-            <input type="password" id="loginPassword" placeholder="請輸入密碼" onkeypress="if(event.key === 'Enter') checkLogin()">
-            <label style="display: flex; align-items: center; justify-content: flex-start; margin-top: -5px; margin-bottom: 15px; font-size: 14px; color: #4a5568; cursor: pointer;">
-                <input type="checkbox" style="width: 16px; height: 16px; margin: 0 8px 0 0; padding: 0; min-height: auto;" onclick="document.getElementById('loginPassword').type = this.checked ? 'text' : 'password'">
-                顯示密碼
-            </label>
-            <button onclick="checkLogin()">登入</button>
-            <p id="loginError" style="color: #e53e3e; margin-top: 15px; display: none; font-size: 14px; font-weight: 600;">密碼錯誤，請重試</p>
-        </div>
-    </div>
-
-    <header>
-        <h1>ANTIGRAVITY ISP</h1>
-        <div class="header-actions">
-            <div class="tabs" id="userTabs">
-                <!-- Tabs injected by JS -->
-            </div>
-            <button class="btn-add-goal" onclick="exportData()" style="background: #edf2f7; color: #4a5568; margin-right: 10px;">
-                匯出資料
-            </button>
-            <label class="btn-add-goal" style="background: #edf2f7; color: #4a5568; margin-right: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
-                匯入資料
-                <input type="file" accept=".json" style="display:none" onchange="importData(event)">
-            </label>
-            <button class="btn-add-goal" onclick="openModal()">
-                <span>＋</span> 新增 ISP 目標
-            </button>
-            <button class="btn-logout" onclick="logout()" style="padding: 12px 24px; border: 1px solid #e2e8f0; background: white; color: #4a5568; border-radius: 30px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: none;" id="logoutBtn">
-                登出
-            </button>
-        </div>
-    </header>
-
-    <div class="container">
-        <div class="cards-grid" id="cardsContainer">
-            <!-- Cards injected by JS -->
-        </div>
-
-        <div class="evaluation-section">
-            <h2 style="margin-bottom: 25px; font-size: 24px; font-weight: 800; color: #1a202c;">期中/期末評估與統整</h2>
-            <div class="evaluation-grid">
-                <div>
-                    <label class="section-title" style="display: block; margin-top: 0; margin-bottom: 12px;">期中修改</label>
-                    <textarea id="midTermText" placeholder="請輸入期中修改內容..." oninput="saveEvaluation()"></textarea>
-                </div>
-                <div>
-                    <label class="section-title" style="display: block; margin-top: 0; margin-bottom: 12px;">期末總結</label>
-                    <textarea id="endTermText" placeholder="請輸入期末總結內容..." oninput="saveEvaluation()"></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit/Add Modal -->
-    <div class="modal-overlay" id="editModalOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">編輯 ISP 目標</h2>
-                <button class="btn-close-icon" onclick="closeModal()">✕</button>
+    <div class="app-container">
+        <!-- 左側編輯面板 -->
+        <aside class="editor-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>班會紀錄設計 <span>易讀版</span></h2>
+                <button class="btn-action-small no-print" onclick="toggleSidebar()" id="close-sidebar-btn" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <div class="form-group">
-                <label>支持領域</label>
-                <input type="text" id="editDomain" placeholder="例如：生活自理、社會參與">
-            </div>
-            <div class="form-group">
-                <label>總目標名稱</label>
-                <input type="text" id="editTarget" placeholder="具體的目標名稱">
-            </div>
-            <div class="form-group">
-                <label>目前狀態</label>
-                <select id="editStatus">
-                    <option value="未達標">未達標</option>
-                    <option value="達標">達標</option>
-                    <option value="未紀錄">未紀錄</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>支持策略</label>
-                <textarea id="editStrategy" rows="3" placeholder="請輸入支持策略..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>通過標準</label>
-                <textarea id="editStandard" rows="2" placeholder="請輸入通過標準..."></textarea>
-            </div>
-            
-            <h3 style="margin: 35px 0 20px; font-size: 18px; font-weight: 800; border-bottom: 2px solid #edf2f7; padding-bottom: 10px;">每月執行紀錄</h3>
-            <div class="month-inputs" id="monthInputsContainer">
-                <!-- Month inputs injected by JS -->
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" onclick="switchTab('basic-tab')">基本資料與排版</button>
+                <button class="tab-btn" onclick="switchTab('options-tab')">提案選項</button>
+                <button class="tab-btn" onclick="switchTab('drafts-tab')">存檔管理</button>
             </div>
 
-            <div class="modal-actions">
-                <button class="btn btn-cancel" onclick="closeModal()">取消</button>
-                <button class="btn btn-save" onclick="saveChanges()">儲存變更</button>
+            <div class="sidebar-content">
+                <!-- 頁籤一：基本資料與排版 -->
+                <div class="tab-pane active" id="basic-tab">
+                    <div class="form-group">
+                        <label for="edit-title"><i class="fa-solid fa-file-pen"></i> 會議名稱</label>
+                        <input type="text" id="edit-title" class="form-control" placeholder="班級會議紀錄">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-location"><i class="fa-solid fa-location-dot"></i> 開會地點</label>
+                        <input type="text" id="edit-location" class="form-control" placeholder="請填寫地點...">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-date"><i class="fa-solid fa-calendar-days"></i> 開會日期</label>
+                        <input type="text" id="edit-date" class="form-control" placeholder="請填寫日期...">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-chairman"><i class="fa-solid fa-user-tie"></i> 主席</label>
+                        <input type="text" id="edit-chairman" class="form-control" placeholder="請填寫主席姓名...">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-recorder"><i class="fa-solid fa-pen-nib"></i> 紀錄者</label>
+                        <input type="text" id="edit-recorder" class="form-control" placeholder="請填寫紀錄者姓名...">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-time"><i class="fa-solid fa-clock"></i> 開會時間</label>
+                        <input type="text" id="edit-time" class="form-control" placeholder="請填寫時間...">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-supporter"><i class="fa-solid fa-hands-holding-child"></i> 支持者</label>
+                        <input type="text" id="edit-supporter" class="form-control" placeholder="請填寫支持者...">
+                    </div>
+
+                    <!-- 👥 個人決定 4人份編輯區 -->
+                    <div class="form-group" style="border-top: 1px solid var(--sidebar-border); padding-top: 15px; margin-top: 20px;">
+                        <label><i class="fa-solid fa-users"></i> 個人自決設定 (4人份)</label>
+                        <div id="sidebar-personal-decisions-container">
+                            <!-- JS 動態生成編輯欄位 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 💡 列印與排版縮放/手動分頁設定 -->
+                    <div class="form-group" style="border-top: 1px solid var(--sidebar-border); padding-top: 15px; margin-top: 20px;">
+                        <label><i class="fa-solid fa-sliders"></i> 列印與分頁版面設定</label>
+                        
+                        <div style="margin-bottom:12px;">
+                            <label for="select-print-scale" style="font-size:12px; margin-bottom:4px; display:block;">版面間距縮放（若列印時表格被切，請選緊湊）</label>
+                            <select id="select-print-scale" class="form-control" onchange="changePrintScale(this.value)">
+                                <option value="print-normal" selected>標準間距 (預設大小)</option>
+                                <option value="print-compact">緊湊間距 (縮小字體與表格間隙)</option>
+                                <option value="print-spacious">寬鬆間距 (較大字體)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="font-size:12px; margin-bottom:6px; display:block;">手動斷行設定 (✂️ 分頁點)</label>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <label style="display:flex; align-items:center; gap:8px; font-weight:normal; font-size:13px; color:var(--sidebar-text-muted); cursor:pointer;">
+                                    <input type="checkbox" id="break-before-self" onchange="togglePageBreak('self', this.checked)"> 在「個人決定」前強制斷行
+                                </label>
+                                <label style="display:flex; align-items:center; gap:8px; font-weight:normal; font-size:13px; color:var(--sidebar-text-muted); cursor:pointer;">
+                                    <input type="checkbox" id="break-before-prop2" onchange="togglePageBreak('prop2', this.checked)"> 在「提案二」前強制斷行
+                                </label>
+                                <label style="display:flex; align-items:center; gap:8px; font-weight:normal; font-size:13px; color:var(--sidebar-text-muted); cursor:pointer;">
+                                    <input type="checkbox" id="break-before-roles" onchange="togglePageBreak('roles', this.checked)"> 在「點心工作分配表」前強制斷行
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 頁籤二：提案選項 -->
+                <div class="tab-pane" id="options-tab">
+                    <h3 style="font-size:16px; margin-bottom:15px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">提案一：社區活動票選</h3>
+                    
+                    <!-- 日期選項編輯 -->
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-calendar-check"></i> 日期選項</label>
+                        <div style="display:flex; flex-direction:column; gap:8px;" id="date-options-edit">
+                            <!-- 動態生成 -->
+                        </div>
+                        <button class="btn-action-small" onclick="addCustomOption('date')" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> 新增日期選項</button>
+                    </div>
+
+                    <!-- 地點選項編輯 -->
+                    <div class="form-group" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:15px;">
+                        <label><i class="fa-solid fa-map-location-dot"></i> 地點選項 (多數決)</label>
+                        <div style="display:flex; flex-direction:column; gap:8px;" id="location-options-edit">
+                            <!-- 動態生成 -->
+                        </div>
+                        <button class="btn-action-small" onclick="addCustomOption('location')" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> 新增地點選項</button>
+                    </div>
+
+                    <h3 style="font-size:16px; margin-bottom:15px; margin-top:25px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">提案二：點心餐點製作</h3>
+                    <!-- 點心選項編輯 -->
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-cookie"></i> 點心選項</label>
+                        <div style="display:flex; flex-direction:column; gap:12px;" id="food-options-edit">
+                            <!-- 動態生成 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 頁籤三：存檔管理 -->
+                <div class="tab-pane" id="drafts-tab">
+                    <label style="display:block; font-size:14px; font-weight:600; color:var(--sidebar-text-muted); margin-bottom:12px;"><i class="fa-solid fa-box-archive"></i> 本地儲存的草稿列表</label>
+                    <div id="drafts-list-container">
+                        <!-- 動態載入草稿清單 -->
+                    </div>
+
+                    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:15px; margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+                        <label><i class="fa-solid fa-file-import"></i> 資料備份與跨設備轉移</label>
+                        <button class="btn-premium btn-premium-outline" onclick="exportDataJSON()" style="color:#fff; border-color:rgba(255,255,255,0.15); width:100%;">
+                            <i class="fa-solid fa-download"></i> 匯出所有紀錄 (.json)
+                        </button>
+                        <button class="btn-premium btn-premium-outline" onclick="triggerImport()" style="color:#fff; border-color:rgba(255,255,255,0.15); width:100%;">
+                            <i class="fa-solid fa-upload"></i> 匯入紀錄檔案 (.json)
+                        </button>
+                        <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importDataJSON(event)">
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- 底部草稿儲存控制 -->
+            <div class="draft-ops">
+                <button class="btn-premium btn-premium-primary" onclick="saveCurrentDraft()"><i class="fa-solid fa-floppy-disk"></i> 儲存目前會議紀錄</button>
+                <button class="btn-premium btn-premium-outline" onclick="loadDefaultTemplate()" style="color:#fff; border-color:rgba(255,255,255,0.15);"><i class="fa-solid fa-rotate-left"></i> 載入官方演示範本</button>
+                <button class="btn-premium btn-premium-outline" onclick="loadBlankTemplate()" style="color:#fff; border-color:rgba(255,255,255,0.15); margin-top:5px;"><i class="fa-solid fa-file-signature"></i> 回復初始空白版</button>
+            </div>
+        </aside>
+
+        <!-- 右側畫布區域 -->
+        <main class="main-canvas">
+            <!-- 頂部工具列 -->
+            <div class="canvas-toolbar no-print">
+                <div class="toolbar-left">
+                    <h3 id="toolbar-meeting-title">班級會議紀錄</h3>
+                    <p>雙欄式智慧介面，支援文字編輯模式，完美解決列印斷行切割問題</p>
+                </div>
+                <div class="toolbar-buttons">
+                    <!-- 💬 開啟對話紀錄按鈕 -->
+                    <button class="btn-premium btn-premium-outline" onclick="window.open('對話紀錄.html', '_blank')">
+                        <i class="fa-solid fa-comments"></i> 💬 開啟對話紀錄
+                    </button>
+                    
+                    <!-- 🛠️ 文字編輯修改模式開關 -->
+                    <button class="btn-premium btn-premium-outline" id="btn-edit-mode" onclick="toggleTextEditMode()">
+                        <i class="fa-solid fa-pen-to-square"></i> 啟用版面文字修改
+                    </button>
+                    
+                    <button class="btn-premium btn-premium-secondary" onclick="window.print()">
+                        <i class="fa-solid fa-print"></i> 列印 / 另存 PDF
+                    </button>
+                    <button class="btn-premium btn-premium-word" onclick="exportToWordHtml()">
+                        <i class="fa-solid fa-file-word"></i> 匯出 Word 檔
+                    </button>
+                    <button class="btn-premium btn-premium-outline btn-premium-danger" onclick="resetAllSelections()" style="color:#ef4444; border-color:#fca5a5;">
+                        <i class="fa-solid fa-trash-can"></i> 重設所有勾選
+                    </button>
+                </div>
+            </div>
+
+            <!-- A4 畫布區 -->
+            <div class="a4-viewport print-normal" id="a4-viewport">
+                
+                <!-- A4 第一頁：基本資料與提案一 -->
+                <div id="print-area-1" class="page-container">
+                    <div class="header">
+                        <h1 id="a4-title-display" contenteditable="false">班 級 會 議 紀 錄</h1>
+                    </div>
+
+                    <!-- 基本資料表格 -->
+                    <table class="info-table">
+                        <tr>
+                            <td class="info-label">開會地點</td>
+                            <td><input type="text" id="a4-location" style="width:100%; border:none; font-size:18px;" placeholder="（點擊輸入地點）" oninput="syncEditor('location')"></td>
+                            <td class="info-label">開會日期</td>
+                            <td><input type="text" id="a4-date" style="width:100%; border:none; font-size:18px;" placeholder="（點擊輸入日期）" oninput="syncEditor('date')"></td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">主 席</td>
+                            <td><input type="text" id="a4-chairman" style="width:100%; border:none; font-size:18px;" placeholder="（主席姓名）" oninput="syncEditor('chairman')"></td>
+                            <td class="info-label">紀錄者</td>
+                            <td><input type="text" id="a4-recorder" style="width:100%; border:none; font-size:18px;" placeholder="（紀錄姓名）" oninput="syncEditor('recorder')"></td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">開會時間</td>
+                            <td><input type="text" id="a4-time" style="width:100%; border:none; font-size:18px;" placeholder="（開會時間）" oninput="syncEditor('time')"></td>
+                            <td class="info-label">支持者</td>
+                            <td><input type="text" id="a4-supporter" style="width:100%; border:none; font-size:18px;" placeholder="（社工/支持者）" oninput="syncEditor('supporter')"></td>
+                        </tr>
+                    </table>
+
+                    <!-- 提案一 -->
+                    <div class="proposal-header" style="background-color: var(--primary-group);" contenteditable="false">
+                        <i class="fa-solid fa-store"></i> 提案一：社區活動店家票選
+                    </div>
+
+                    <!-- 👥 集合決定 -->
+                    <div class="section-badge badge-group" contenteditable="false">
+                        <i class="fa-solid fa-users"></i> 👥 集合決定：大家一起投票（多數決）
+                    </div>
+                    <div class="section-desc" contenteditable="false">說明：請大家共同投票，選出我們這一天要去的地點與日期。</div>
+
+                    <table class="record-table">
+                        <tr>
+                            <!-- 日期項目 -->
+                            <td class="col-visual">
+                                <div class="visual-card">
+                                    <div class="visual-icon" style="color: var(--primary-group); border-color: var(--primary-group-light);"><i class="fa-solid fa-calendar-days"></i></div>
+                                    <div class="visual-text" contenteditable="false">開會日期</div>
+                                </div>
+                            </td>
+                            <td class="col-option">
+                                <div class="option-list" id="a4-date-options">
+                                    <!-- 動態渲染日期選項 -->
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <!-- 我想去哪裡項目 -->
+                            <td class="col-visual">
+                                <div class="visual-card">
+                                    <div class="visual-icon" style="color: var(--primary-group); border-color: var(--primary-group-light);"><i class="fa-solid fa-location-dot"></i></div>
+                                    <div class="visual-text" contenteditable="false">我想去哪裡</div>
+                                </div>
+                            </td>
+                            <td class="col-option">
+                                <div class="option-list" id="a4-location-options">
+                                    <!-- 動態渲染地點選項 -->
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- 👤 個人決定 -->
+                    <div class="section-badge badge-self" id="a4-section-self" contenteditable="false">
+                        <i class="fa-solid fa-user"></i> 👤 個人決定：我的活動計畫（每個人自己決定）
+                    </div>
+                    <div class="section-desc" id="a4-desc-self" contenteditable="false">說明：想一想，活動當天每個人要吃什麼？預算帶多少？（共4格，人數未定可留空手寫）</div>
+
+                    <!-- 🍔 菜單選擇參考 -->
+                    <div class="tip-box" id="menu-reference-box" style="background-color: #fffbeb; border-left: 5px solid var(--primary-self); margin-bottom: 15px; color: #92400e;" contenteditable="false">
+                        <strong>🍔 菜單選擇參考：</strong>
+                        <span id="menu-reference-text">請先選擇上方想去的餐廳</span>
+                    </div>
+
+                    <!-- 4個個人決定卡片網格 -->
+                    <div class="personal-grid" id="a4-personal-grid">
+                        <!-- 由 JS 動態生成 4 個卡片 -->
+                    </div>
+                </div>
+
+                <!-- A4 第二頁：提案二與分工表 -->
+                <div id="print-area-2" class="page-container page-break">
+                    <div class="proposal-header" id="a4-prop2-header" style="background-color: var(--primary-teal);" contenteditable="false">
+                        <i class="fa-solid fa-cookie-bite"></i> 提案二：點心餐點製作票選
+                    </div>
+                    
+                    <div class="section-badge badge-group" id="a4-prop2-badge" style="background-color: var(--primary-teal);" contenteditable="false">
+                        <i class="fa-solid fa-users"></i> 👥 集合決定：大家一起投票（多數決）
+                    </div>
+                    <div class="section-desc" id="a4-prop2-desc" contenteditable="false">說明：請在你想動手做的點心卡片上打勾（選一個）。</div>
+
+                    <!-- 點心投票卡片容器 -->
+                    <div class="food-vote-container" id="a4-food-container">
+                        <!-- 動態生成點心卡片 -->
+                    </div>
+
+                    <!-- 點心分工表 -->
+                    <div class="section-badge badge-self" id="a4-roles-badge" style="background-color: #0f172a; margin-top: 15px;" contenteditable="false">
+                        <i class="fa-solid fa-people-carry-box"></i> 👨‍🍳 點心製作工作分配表 ✍️
+                    </div>
+                    <div class="section-desc" id="a4-roles-desc" contenteditable="false">說明：請在欄位中寫上自己最想嘗試的任務名稱（學生可直接手寫填寫）。</div>
+
+                    <table class="division-table" id="a4-table-roles">
+                        <tr>
+                            <th>
+                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🧺 備料組</div>
+                                <div class="division-role-subtitle">準備食材、洗洗切切、清點用具</div>
+                            </th>
+                            <td>
+                                <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                                    <input type="text" class="input-line staff-input" id="input-role-prep-name" placeholder="（請填寫學生姓名）" style="width: 100%; font-size: 19px; font-weight: bold; text-align: left;">
+                                    <input type="text" class="input-line" id="input-role-prep-text" placeholder="手寫或代筆補充..." style="width: 100%; font-size:16px;">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🍳 烹飪組</div>
+                                <div class="division-role-subtitle">負責開火、煎烤煮炸、注意安全</div>
+                            </th>
+                            <td>
+                                <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                                    <input type="text" class="input-line staff-input" id="input-role-cook-name" placeholder="（請填寫學生姓名）" style="width: 100%; font-size: 19px; font-weight: bold; text-align: left;">
+                                    <input type="text" class="input-line" id="input-role-cook-text" placeholder="手寫或代筆補充..." style="width: 100%; font-size:16px;">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🥖 組裝組</div>
+                                <div class="division-role-subtitle">用心擺盤、塗抹抹醬、包裝分裝</div>
+                            </th>
+                            <td>
+                                <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                                    <input type="text" class="input-line staff-input" id="input-role-assembly-name" placeholder="（請填寫學生姓名）" style="width: 100%; font-size: 19px; font-weight: bold; text-align: left;">
+                                    <input type="text" class="input-line" id="input-role-assembly-text" placeholder="手寫或代筆補充..." style="width: 100%; font-size:16px;">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <div style="font-size: 22px; margin-bottom: 5px;" contenteditable="false">🧼 收拾組</div>
+                                <div class="division-role-subtitle">餐後清潔、清洗擦桌、分類倒垃圾</div>
+                            </th>
+                            <td>
+                                <div class="staff-select-container" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                                    <input type="text" class="input-line staff-input" id="input-role-clean-name" placeholder="（請填寫學生姓名）" style="width: 100%; font-size: 19px; font-weight: bold; text-align: left;">
+                                    <input type="text" class="input-line" id="input-role-clean-text" placeholder="手寫或代筆補充..." style="width: 100%; font-size:16px;">
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="tip-box" id="a4-tip-box" contenteditable="false">
+                        <strong>💡 溫馨引導提示：</strong><br>
+                        這份分工表格支持服務對象的自主權！請支持者（工作人員/社工）在會議時，帶領服務對象理解每個任務的大致內容，並尊重服務對象主動爭取組別的意願，適時在名稱欄位上提供代筆或讓學生親自寫下姓名。
+                    </div>
+                </div>
+
+            </div>
+        </main>
     </div>
+
+    <!-- 手機版浮動展開按鈕 -->
+    <button class="floating-toggle no-print" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
 
     <script>
-        // Generated from JSON
-        const importedData = {"曾宇彤": {"midTerm": "", "endTerm": "", "goals": [{"id": "g_曾宇彤_0", "domain": "-", "target": "宇彤能在口頭提示下，依照不同情境正確且適量使用生活耗材", "strategy": "", "standard": "經口頭提示任務情境後，宇彤能自行判斷或聽從建議數量抽取，不連續取用，達成率 80%（連續6個月）", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_1", "domain": "權利", "target": "支持目標1-1 在情境中能主動表達自己的需求(烹飪課、社區活動)", "strategy": "- 使用視覺圖卡，引導宇彤透過「圖卡」表達『我想要』，隨後鼓勵其配合簡單口語（如：我要水）表達需求。\n- 將需求拆解為「兩個字一組」的短語（如：拿碗、吃飯、乾燥劑），透過簡短語句引導表達，逐步提升自主開口的意願。", "standard": "連續6個月達成 80%", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_2", "domain": "權利", "target": "支持目標1-2 在社區活動中能獨自完成購物流程", "strategy": "- 於班會預先討論採購清單，出發前與結帳前再次確認內容；在店家由宇彤自行拿取商品並與店員結帳，引導其練習收好找零，完整參與購物流程", "standard": "連續6個月達成 80%", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_3", "domain": "人際關係", "target": "支持目標2-1 在團體活動（如：遊戲、討論）中，能主動遵守輪流、等待的規則", "strategy": "- 在課程遊戲中引導宇彤「要玩請排隊、不要催促」，透過同理心（如：妳也不喜歡被人家催），建立等待習慣\n- 當宇彤有達成任務時，支持者立即給予口頭讚美", "standard": "每週四次以上主動遵守規則，連續四週", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_4", "domain": "人際關係", "target": "支持目標2-2 在團體活動中能正確稱呼同儕姓名", "strategy": "- 當宇彤以「ㄟ」稱呼同學時，支持者會立刻提醒：「同學叫什麼名字？」，引導其正確說出名字後再繼續對話。\n- 每日活動開始前進行簡單點名遊戲，引導宇彤看著同學並說出對方的名字，建立正確稱呼的正向記憶\n- 在座位或分組區放置同學的照片，在宇彤需要找人前，先給予視覺提示以減少使用「ㄟ」的機會", "standard": "每週在情境中能五次以上正確稱呼同儕名字，連續四週", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_5", "domain": "社會融合", "target": "支持目標3-1 正確辨識交通號誌（紅綠燈）", "strategy": "- 支持者會利用用餐、丟垃圾或到工廠工作等生活移動空檔，即時引導宇彤判斷路口號誌，釐清車行紅綠燈與行人「小綠人」的差異\n- 過馬路前由支持者引導宇彤觀察燈號，練習正確判斷「通行」或「停止」時機\n- 在課程中，也會反覆宣導「紅燈停、綠燈行」的安全觀念", "standard": "能100%達成「紅燈停、綠燈行」每月至少5次，連續三個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_6", "domain": "社會融合", "target": "支持目標3-2 擔任幫手引導同儕安全過馬路", "strategy": "- 支持者會先讓宇彤判斷路口安全，並帶領同儕過馬路\n- 過程中支持者會給予即時指導與錯誤糾正，並針對正確表現給予具體口頭讚美以強化成功經驗。", "standard": "能正確地引導同儕完成安全過馬路，每月至少5次", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_7", "domain": "物質福祉", "target": "支持目標4-1 在重複性作業活動中，能連續專注達 20 分鐘", "strategy": "- 作業開始前會口頭提醒宇彤拿椅子與乾燥劑就位，並學先先拿昨日未用完的乾燥劑出來使用，建立良好的工作準備習慣\n- 支持者檢視其成品，若發現漏放或數量錯誤，即將該包糖果置於桌上並提問：「這包問題在哪？」，引導其自行找出錯誤並修正後放回箱子內。\n- 透過口頭確認（如：檢查好了嗎？）強化檢查意識，並引導其在放完乾燥劑後主動進行自我核對，透過這一系列訓練以延長她在作業活動上的專注時間", "standard": "在作業活動中專注能達20分鐘，每月至少15次", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_8", "domain": "身體福祉", "target": "支持目標4-2 成品不合格時，能穩定情緒並接受指導立即修正錯誤", "strategy": "- 成品不合格時，支持者先給予 1-2 次自我修正機會。若二檢仍未修正，改以嚴肅語氣介入提問（如：這包錯在哪？該怎麼做？），強化宇彤對工作品質的警覺心。\n- 當宇彤成功找出並修正問題後，支持者即時給予高度肯定（如：妳很厲害，能找出問題），並引導其承諾下次作業時需更加仔細，建立責任感", "standard": "接受指導修正錯誤，不發脾氣，每月至少15次", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_曾宇彤_9", "domain": "-", "target": "社區活動結束後，宇彤能在支持者的口頭提示下，參與從領取發票、核對金額到黏貼憑證的整套流程。", "strategy": "- 使用螢光筆在發票金額處畫圈，降低辨識難度。", "standard": "在 10 次練習中，學生能用手指點出發票上數字最大的總額區塊，達成率達 70%。", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}]}, "林育萱": {"midTerm": "", "endTerm": "", "goals": [{"id": "g_林育萱_10", "domain": "-", "target": "宇彤在口頭提示下，完成社區活動後的帳務核對與發票整理作業。", "strategy": "- 1.在記帳本寫下「日期」、「項目」（如：飲料）、「金額」。2.計算：原始零用金 - 支出 = 應剩餘金額。操作計算機進行覆核", "standard": "-", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_11", "domain": "物質福祉", "target": "支持目標1-1參與多元作業活動（如：秤重、包裝、貼標），並能獨立完成作業流程", "strategy": "- 抵達工場後，引導育萱先聽取支持者當天的指示（如：秤糖果、包裝或貼標），確認當天分配的工作站。\n- 確認任務後，育萱自行準備所需工具（如：包裝袋、椅子、貼紙等），建立作業前的準備習慣\n- 作業完成後，自行將剩餘材料與工具歸位放好", "standard": "每10次達成8次且持續6六個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_12", "domain": "物質福祉", "target": "支持目標1-2 社區活動後，能正確填寫記帳本", "strategy": "- 在社區活動購買物品時，由育萱自行結帳，並將找零與發票妥善收好\n- 下午利用個別化時間，讓育萱練習填寫記帳本\n- 填寫完成後，主動交給支持者檢查，針對正確或錯誤的部分給予即時指導與回饋。", "standard": "每10次達成8次且持續6六個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_13", "domain": "自我決策", "target": "支持目標2-1在烹飪活動中，能自主選定烹飪主題或食材組合", "strategy": "- 在班會時間討論當週烹飪主題，鼓勵育萱主動提出想做的料理或食材想法，並讓全班票選討論\n- 主題票選確認後，由育萱練習思考並主動告訴支持者需要準備哪些相關材料，藉此提升其規劃與自主決定的能力", "standard": "每月1次，連續六個月", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_14", "domain": "自我決策", "target": "支持目標2-2擔任指導角色，能向同儕說明或示範操作步驟", "strategy": "- 在料理製作過程中，先由育萱向同儕示範正確的操作步驟\n- 當同儕遇到操作不熟悉或有困難的地方時，育萱可在旁給予口頭提示或實際操作上的協助，培養其擔任指導角色的能力。", "standard": "每月1次，連續六個月", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_15", "domain": "人際關係", "target": "支持目標3-1 靠近他人時，能保持約一步的社交安全距離", "strategy": "- 引導育萱在靠近他人想要牽手或打招呼前，必須先停在安全距離", "standard": "每10次達成8次，持續6個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_16", "domain": "人際關係", "target": "支持目標3-2 欲牽手前先口頭詢問，並尊重對方的意願（若拒絕則停止）", "strategy": "- 先詢問對方：「我可以牽你嗎？」詢問完後，必須等待對方明確答應，才能進行牽手的動作。\n- 若對方拒絕，應立即停止該動作並保持距離\n- 提醒育萱與他人打招呼時，將聲音調整到對方能聽到的音量即可，避免音量過大造成他人的困擾", "standard": "每10次達成8次，持續6個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_17", "domain": "社會融合", "target": "支持目標4-1 在社區行走時，能主動維持行走在白線區域內", "strategy": "- 在社區活動或前往工場的路上，當支持者發現育萱走在白線外時，立即給予口頭提醒（如：「育萱，請走在白線內喔」）\n- 透過持續的口頭支持與引導，讓育萱逐漸養成注意路面標線的習慣", "standard": "每10次達成8次，持續6個月", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_18", "domain": "社會融合", "target": "支持目標4-2 模擬迷路或受困情境時，能主動出示緊急聯絡卡或撥打求助電話", "strategy": "- 在社區活動中，模擬走失情境，讓育萱練習使用手機撥打求助電話（如：撥回華聖或撥打 110 報警\n- 引導育萱在迷路時可向商店店家（如警察、店員）出示隨身攜帶的緊急聯絡卡，請他人提供協助", "standard": "每10次達成8次，持續6個月", "status": "達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_19", "domain": "-", "target": "服務對象在支持者部分肢體協助下，參與一日遊圓夢計畫之規劃與執行", "strategy": "", "standard": "能在報讀時間後，配合協助指認時鐘或時間紀錄位置。", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}, {"id": "g_林育萱_20", "domain": "-", "target": "育萱在進入工廠或較時時，能依據空間規範將非必要物品歸位，維持個人工作區淨空。", "strategy": "- 物理界定（初期輔助）：\n- 在桌面上用彩色膠帶貼出一個「工作區」（如：桌面中央的長方形）。\n- 告訴她：「這裡面只能放現在要用的東西，外面的空間要空出來。」口訣化檢核：", "standard": "-", "status": "未達標", "records": [{"month": 1, "desc": "", "strategy": "", "rate": 0}, {"month": 2, "desc": "", "strategy": "", "rate": 0}, {"month": 3, "desc": "", "strategy": "", "rate": 0}, {"month": 4, "desc": "", "strategy": "", "rate": 0}, {"month": 5, "desc": "", "strategy": "", "rate": 0}, {"month": 6, "desc": "", "strategy": "", "rate": 0}, {"month": 7, "desc": "", "strategy": "", "rate": 0}, {"month": 8, "desc": "", "strategy": "", "rate": 0}, {"month": 9, "desc": "", "strategy": "", "rate": 0}, {"month": 10, "desc": "", "strategy": "", "rate": 0}, {"month": 11, "desc": "", "strategy": "", "rate": 0}, {"month": 12, "desc": "", "strategy": "", "rate": 0}]}]}};
-
-        let currentData = {};
-        let currentUser = "";
-        let editingGoalId = null; // null means adding new goal
-
-        function init() {
-            const savedData = localStorage.getItem('ispDashboardDataV2');
-            
-            if (savedData) {
-                currentData = JSON.parse(savedData);
-            } else {
-                currentData = importedData;
-                localStorage.setItem('ispDashboardDataV2', JSON.stringify(currentData));
-            }
-            
-            // Set initial user
-            const users = Object.keys(currentData);
-            if(users.length > 0 && !currentUser) {
-                currentUser = users[0];
-            }
-            
-            renderTabs();
-            renderDashboard();
-        }
-
-        function saveData() {
-            localStorage.setItem('ispDashboardDataV2', JSON.stringify(currentData));
-        }
-
-        function renderTabs() {
-            const tabsContainer = document.getElementById('userTabs');
-            tabsContainer.innerHTML = '';
-            
-            const users = Object.keys(currentData);
-            users.forEach(user => {
-                const btn = document.createElement('button');
-                btn.className = `tab-btn ${user === currentUser ? 'active' : ''}`;
-                btn.textContent = user;
-                btn.onclick = () => {
-                    currentUser = user;
-                    renderTabs();
-                    renderDashboard();
-                };
-                tabsContainer.appendChild(btn);
-            });
-            
-            // Allow adding new user dynamically if needed, but not required yet
-        }
-
-        function renderDashboard() {
-            const container = document.getElementById('cardsContainer');
-            container.innerHTML = '';
-            
-            if (!currentData[currentUser]) return;
-            const userData = currentData[currentUser];
-            
-            userData.goals.forEach(goal => {
-                let statusClass = 'status-gray';
-                if (goal.status === '未達標') statusClass = 'status-red';
-                if (goal.status === '達標') statusClass = 'status-green';
-                
-                let totalRate = 0;
-                let recordedMonths = 0;
-                goal.records.forEach(r => {
-                    if (r.rate > 0 || r.desc !== "" || (r.strategy && r.strategy !== "") || r.target || r.standard) {
-                        totalRate += parseInt(r.rate) || 0;
-                        recordedMonths++;
-                    }
-                });
-                const avgRate = recordedMonths > 0 ? Math.round(totalRate / recordedMonths) : 0;
-
-                const cardHTML = `
-                    <div class="card" data-id="${goal.id}">
-                        <div class="drag-handle" title="拖曳排序">⋮⋮</div>
-                        <div class="status-badge ${statusClass}">${goal.status}</div>
-                        <div class="card-header">
-                            <span class="domain-tag">${goal.domain}</span>
-                            <div class="goal-title">${goal.target || '未命名目標'}</div>
-                        </div>
-
-                        <div style="margin-top: 15px; padding: 0 30px;">
-                            <div class="section-title">支持策略</div>
-                            <div class="content-text">${(goal.strategy || '尚未記錄').replace(/\n/g, '<br>')}</div>
-                            
-                            <div class="section-title">通過標準</div>
-                            <div class="content-text">${(goal.standard || '尚未記錄').replace(/\n/g, '<br>')}</div>
-                        </div>
-
-                        <div class="progress-section" style="margin-top: 10px; padding-top: 15px; border-top: none; padding-right: 30px; padding-left: 30px;">
-                            <div class="progress-text">
-                                <span>當前平均達成率</span>
-                                <span>${avgRate}%</span>
-                            </div>
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" style="width: ${avgRate}%"></div>
-                            </div>
-                        </div>
-
-                        <div class="actions">
-                            <button class="btn btn-records" onclick="toggleRecords('${goal.id}')">每月紀錄</button>
-                            <button class="btn btn-edit" onclick="openModal('${goal.id}')">編輯</button>
-                            <button class="btn btn-delete" onclick="deleteGoal('${goal.id}')" title="刪除目標">🗑️</button>
-                        </div>
-
-                        <div class="records-area" id="records-${goal.id}">
-                            ${goal.records.map(r => {
-                                return `
-                                <div class="month-record">
-                                    <div class="month-title">
-                                        <span>第 ${r.month} 月</span>
-                                        <span>達成率: ${r.rate}%</span>
-                                    </div>
-                                    
-                                    <div class="month-desc-label">執行狀況</div>
-                                    <div class="month-desc">${r.desc ? r.desc.replace(/\\n/g, '<br>') : '<span style="color:#a0aec0;font-style:italic">尚未記錄</span>'}</div>
-                                </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += cardHTML;
-            });
-
-            document.getElementById('midTermText').value = userData.midTerm || '';
-            document.getElementById('endTermText').value = userData.endTerm || '';
-
-            if (window.sortableInstance) {
-                window.sortableInstance.destroy();
-            }
-            window.sortableInstance = new Sortable(container, {
-                animation: 150,
-                handle: '.drag-handle',
-                ghostClass: 'sortable-ghost',
-                onEnd: function (evt) {
-                    if (evt.newIndex !== evt.oldIndex) {
-                        const movedGoal = currentData[currentUser].goals.splice(evt.oldIndex, 1)[0];
-                        currentData[currentUser].goals.splice(evt.newIndex, 0, movedGoal);
-                        saveData();
-                    }
-                }
-            });
-        }
-
-        function deleteGoal(goalId) {
-            if (confirm('確定要刪除此目標嗎？')) {
-                currentData[currentUser].goals = currentData[currentUser].goals.filter(g => g.id !== goalId);
-                saveData();
-                renderDashboard();
-            }
-        }
-
-        function toggleRecords(goalId) {
-            const el = document.getElementById(`records-${goalId}`);
-            if(el.classList.contains('active')) {
-                el.classList.remove('active');
-            } else {
-                // close others
-                document.querySelectorAll('.records-area').forEach(e => e.classList.remove('active'));
-                el.classList.add('active');
-            }
-        }
-
-        function openModal(goalId = null) {
-            editingGoalId = goalId;
-            const modalTitle = document.getElementById('modalTitle');
-            
-            const monthsContainer = document.getElementById('monthInputsContainer');
-            monthsContainer.innerHTML = '';
-            
-            if (goalId) {
-                modalTitle.textContent = "編輯 ISP 目標";
-                const goal = currentData[currentUser].goals.find(g => g.id === goalId);
-                
-                document.getElementById('editTarget').value = goal.target || '';
-                document.getElementById('editDomain').value = goal.domain || '';
-                document.getElementById('editStatus').value = goal.status || '未紀錄';
-                document.getElementById('editStrategy').value = goal.strategy || '';
-                document.getElementById('editStandard').value = goal.standard || '';
-
-                goal.records.forEach(r => {
-                    monthsContainer.innerHTML += createMonthInputHTML(r.month, r.desc, r.rate);
-                });
-            } else {
-                modalTitle.textContent = "新增 ISP 目標";
-                document.getElementById('editTarget').value = "";
-                document.getElementById('editDomain').value = "";
-                document.getElementById('editStatus').value = "未紀錄";
-                document.getElementById('editStrategy').value = "";
-                document.getElementById('editStandard').value = "";
-                
-                for(let i=1; i<=12; i++) {
-                    monthsContainer.innerHTML += createMonthInputHTML(i, "", 0);
-                }
-            }
-
-            document.getElementById('editModalOverlay').style.display = 'flex';
-        }
+        // --- 核心資料狀態管理 ---
+        let currentDraftId = null;
+        let textEditMode = false; // 是否開啟文字修改模式
         
-        function createMonthInputHTML(month, desc, rate) {
-            return `
-                <div class="month-input-card">
-                    <div class="month-input-header">
-                        <span>第 ${month} 月</span>
-                        <div class="rate-input-group">
-                            <label style="margin:0; font-size:13px; font-weight:600;">達成率%</label>
-                            <input type="number" id="rate-${month}" value="${rate}" min="0" max="100">
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <label style="font-size:13px; font-weight:700; margin-bottom: 0;">執行狀況</label>
-                            <button type="button" class="btn-scan" onclick="document.getElementById('ocrInput-${month}').click()" title="拍照或選擇圖片辨識文字">
-                                📷 掃描文字
-                            </button>
-                            <input type="file" id="ocrInput-${month}" accept="image/*" style="display: none;" onchange="handleOCR(this, ${month})">
-                        </div>
-                        <textarea id="desc-${month}" rows="2" placeholder="請輸入執行狀況...">${desc || ''}</textarea>
-                        <div id="ocrStatus-${month}" style="font-size: 12px; color: #6b46c1; margin-top: 5px; display: none;">正在準備掃描模型...</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function handleOCR(input, month) {
-            if (!input.files || input.files.length === 0) return;
-            const file = input.files[0];
-            const statusEl = document.getElementById(`ocrStatus-${month}`);
-            const btn = input.previousElementSibling;
-            
-            statusEl.style.display = 'block';
-            statusEl.textContent = '正在準備掃描模型... (初次載入需數秒鐘)';
-            btn.disabled = true;
-
-            try {
-                const worker = await Tesseract.createWorker('chi_tra', 1, {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progress = Math.round(m.progress * 100);
-                            statusEl.textContent = `正在辨識文字中... ${progress}%`;
-                        }
-                    }
-                });
-                
-                const ret = await worker.recognize(file);
-                
-                let text = ret.data.text.trim();
-                text = text.replace(/ /g, '');
-                
-                const textArea = document.getElementById(`desc-${month}`);
-                if (textArea.value) {
-                    textArea.value += '\n' + text;
-                } else {
-                    textArea.value = text;
+        // 演示範本數據 (備份以利載入)
+        const demoTemplateData = {
+            meetingTitle: "班級會議紀錄",
+            printScale: "print-normal",
+            pageBreaks: {
+                self: false,
+                prop2: true,
+                roles: false
+            },
+            info: {
+                location: "二樓多元活動教室",
+                date: "115年5月6日",
+                chairman: "廖志偉",
+                recorder: "曾宇彤",
+                time: "下午14:00 - 15:30",
+                supporter: "林社工"
+            },
+            roster: ["曾宇彤", "林育萱", "廖志偉", "王小明", "張美玲"],
+            proposals: {
+                dateOptions: [
+                    { id: "date-o1", text: "5月7日 (星期四)", checked: true },
+                    { id: "date-o2", text: "其他（請手寫日期）", checked: false, isCustomText: true, customText: "" }
+                ],
+                locationOptions: [
+                    { id: "loc-o1", text: "🥩 小叮噹牛排", checked: true },
+                    { id: "loc-o2", text: "🥟 八方雲集", checked: false }
+                ],
+                personalFood: {
+                    "🥩 小叮噹牛排": [
+                        { text: "牛排", checked: false },
+                        { text: "豬排", checked: false },
+                        { text: "雞排", checked: false }
+                    ],
+                    "🥟 八方雲集": [
+                        { text: "水餃", checked: false },
+                        { text: "鍋貼", checked: false },
+                        { text: "麵食", checked: false }
+                    ]
+                },
+                personalDecisions: [
+                    { name: "曾宇彤", order: "牛排", cost: "200" },
+                    { name: "林育萱", order: "豬排", cost: "180" },
+                    { name: "廖志偉", order: "雞排", cost: "190" },
+                    { name: "王小明", order: "", cost: "" }
+                ],
+                foodOptions: [
+                    { id: "food-o1", text: "地瓜 Q 餅", emoji: "🍠🟡", checked: true },
+                    { id: "food-o2", text: "炒麵麵包", emoji: "🌭🥢", checked: false }
+                ],
+                division: {
+                    prep: { name: "曾宇彤", text: "" },
+                    cook: { name: "廖志偉", text: "社工協助安全" },
+                    assembly: { name: "林育萱", text: "" },
+                    clean: { name: "王小明", text: "美玲協助倒垃圾" }
                 }
-                
-                statusEl.textContent = '✅ 辨識完成！';
-                setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
-                await worker.terminate();
-            } catch (error) {
-                console.error(error);
-                statusEl.textContent = '❌ 辨識失敗，請確認圖片是否清晰。';
-                statusEl.style.color = '#e53e3e';
-                setTimeout(() => { 
-                    statusEl.style.display = 'none'; 
-                    statusEl.style.color = '#6b46c1';
-                }, 5000);
-            } finally {
-                btn.disabled = false;
-                input.value = '';
             }
-        }
+        };
 
-        function closeModal() {
-            document.getElementById('editModalOverlay').style.display = 'none';
-            editingGoalId = null;
-        }
+        // 預設空白資料庫結構
+        let appData = {
+            meetingTitle: "班級會議紀錄",
+            printScale: "print-normal", // 版面縮放
+            pageBreaks: {               // 強制分頁點
+                self: false,
+                prop2: true,
+                roles: false
+            },
+            info: {
+                location: "",
+                date: "",
+                chairman: "",
+                recorder: "",
+                time: "",
+                supporter: ""
+            },
+            roster: [],
+            proposals: {
+                // 提案一：日期投票選項
+                dateOptions: [
+                    { id: "date-o1", text: "____月____日 (星期____)", checked: false },
+                    { id: "date-o2", text: "其他：________________", checked: false, isCustomText: true, customText: "" }
+                ],
+                // 提案一：我想去哪裡 (多數決)
+                locationOptions: [
+                    { id: "loc-o1", text: "選項一：________________", checked: false },
+                    { id: "loc-o2", text: "選項二：________________", checked: false }
+                ],
+                // 提案一：個人自決 - 食物選項參考
+                personalFood: {
+                    "選項一：________________": [],
+                    "選項二：________________": []
+                },
+                // 提案一：4個個人決定卡片 (姓名、餐點、金額)
+                personalDecisions: [
+                    { name: "", order: "", cost: "" },
+                    { name: "", order: "", cost: "" },
+                    { name: "", order: "", cost: "" },
+                    { name: "", order: "", cost: "" }
+                ],
+                // 提案二：多數決點心卡片
+                foodOptions: [
+                    { id: "food-o1", text: "選項一：________________", emoji: "🧁", checked: false },
+                    { id: "food-o2", text: "選項二：________________", emoji: "🍩", checked: false }
+                ],
+                // 提案二：分工指派名單 (學生填寫姓名與備註)
+                division: {
+                    prep: { name: "", text: "" },
+                    cook: { name: "", text: "" },
+                    assembly: { name: "", text: "" },
+                    clean: { name: "", text: "" }
+                }
+            }
+        };
 
-        function saveChanges() {
-            let goal;
+        // 複製一份預設空白結構做為還原使用
+        const blankTemplateData = JSON.parse(JSON.stringify(appData));
+
+        // --- 初始化頁面 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDraftList();
             
-            if (editingGoalId) {
-                // Edit existing
-                goal = currentData[currentUser].goals.find(g => g.id === editingGoalId);
-            } else {
-                // Add new
-                goal = {
-                    id: 'g_' + Math.random().toString(36).substr(2, 9),
-                    records: Array.from({length: 12}, (_, i) => ({ month: i + 1, desc: "", strategy: "", rate: 0 }))
-                };
-                currentData[currentUser].goals.unshift(goal); // Add to top
+            // 嘗試載入上次編輯的內容，若無則載入預設範本
+            const lastSession = localStorage.getItem('class_meeting_last_session');
+            if (lastSession) {
+                try {
+                    const parsed = JSON.parse(lastSession);
+                    appData = parsed.data;
+                    currentDraftId = parsed.id;
+                } catch (e) {
+                    console.error("載入最後會期失敗", e);
+                }
             }
             
-            goal.target = document.getElementById('editTarget').value;
-            goal.domain = document.getElementById('editDomain').value;
-            goal.status = document.getElementById('editStatus').value;
-            goal.strategy = document.getElementById('editStrategy').value;
-            goal.standard = document.getElementById('editStandard').value;
-
-            for(let i = 1; i <= 12; i++) {
-                goal.records[i-1].desc = document.getElementById(`desc-${i}`).value;
-                goal.records[i-1].rate = parseInt(document.getElementById(`rate-${i}`).value) || 0;
-                delete goal.records[i-1].target;
-                delete goal.records[i-1].strategy;
-                delete goal.records[i-1].standard;
-            }
-
-            saveData();
-            renderDashboard();
-            closeModal();
-        }
-
-        function saveEvaluation() {
-            if(!currentData[currentUser]) return;
-            currentData[currentUser].midTerm = document.getElementById('midTermText').value;
-            currentData[currentUser].endTerm = document.getElementById('endTermText').value;
-            saveData();
-        }
-
-        document.getElementById('editModalOverlay').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
+            renderAll();
+            
+            if (window.innerWidth <= 768) {
+                document.getElementById('close-sidebar-btn').style.display = 'block';
             }
         });
 
-        const SYSTEM_PASSWORD = "admin"; // 預設密碼，可在此處修改
+        // --- 視圖渲染器 ---
+        function renderAll() {
+            // 1. 同步頂部工具列標題
+            document.getElementById('toolbar-meeting-title').innerText = appData.meetingTitle;
+            document.getElementById('a4-title-display').innerText = appData.meetingTitle.split('').join(' ');
+            document.getElementById('edit-title').value = appData.meetingTitle;
 
-        function checkLogin() {
-            const pwd = document.getElementById('loginPassword').value;
-            if (pwd === SYSTEM_PASSWORD) {
-                sessionStorage.setItem('ispLoggedIn', 'true');
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('logoutBtn').style.display = 'block';
-                init();
+            // 2. 同步基本資料
+            document.getElementById('edit-location').value = appData.info.location;
+            document.getElementById('a4-location').value = appData.info.location;
+            
+            document.getElementById('edit-date').value = appData.info.date;
+            document.getElementById('a4-date').value = appData.info.date;
+            
+            document.getElementById('edit-chairman').value = appData.info.chairman;
+            document.getElementById('a4-chairman').value = appData.info.chairman;
+            
+            document.getElementById('edit-recorder').value = appData.info.recorder;
+            document.getElementById('a4-recorder').value = appData.info.recorder;
+            
+            document.getElementById('edit-time').value = appData.info.time;
+            document.getElementById('a4-time').value = appData.info.time;
+            
+            document.getElementById('edit-supporter').value = appData.info.supporter;
+            document.getElementById('a4-supporter').value = appData.info.supporter;
+
+            // 3. 渲染編輯器選項表單
+            renderEditorOptions();
+
+            // 4. 渲染 A4 預覽畫面中的動態項目
+            renderA4DateOptions();
+            renderA4LocationOptions();
+            updateMenuReference();
+            renderA4PersonalCards();
+            renderA4FoodCards();
+            renderA4DivisionInputs();
+            
+            // 5. 渲染左側個人決定編輯區
+            renderEditorPersonalDecisions();
+
+            // 6. 同步列印排版選項到 DOM
+            document.getElementById('select-print-scale').value = appData.printScale;
+            changePrintScale(appData.printScale, false); 
+
+            document.getElementById('break-before-self').checked = appData.pageBreaks.self;
+            togglePageBreak('self', appData.pageBreaks.self, false);
+
+            document.getElementById('break-before-prop2').checked = appData.pageBreaks.prop2;
+            togglePageBreak('prop2', appData.pageBreaks.prop2, false);
+
+            document.getElementById('break-before-roles').checked = appData.pageBreaks.roles;
+            togglePageBreak('roles', appData.pageBreaks.roles, false);
+
+            // 7. 重設編輯狀態
+            if (textEditMode) {
+                setEditable(true);
+            }
+
+            // 8. 儲存暫存
+            saveSessionTemp();
+        }
+
+        // 雙向綁定：從 A4 直接輸入時同步到資料狀態
+        function syncEditor(field) {
+            appData.info[field] = document.getElementById(`a4-${field}`).value;
+            document.getElementById(`edit-${field}`).value = appData.info[field];
+            saveSessionTemp();
+        }
+
+        // 監聽左側輸入並同步至右側
+        document.querySelectorAll('.editor-sidebar input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const id = e.target.id;
+                if (id === 'edit-title') {
+                    appData.meetingTitle = e.target.value;
+                    document.getElementById('toolbar-meeting-title').innerText = appData.meetingTitle;
+                    document.getElementById('a4-title-display').innerText = appData.meetingTitle.split('').join(' ');
+                } else if (id.startsWith('edit-')) {
+                    const field = id.replace('edit-', '');
+                    if (field.startsWith('pd-')) return; // 排除個人決定卡片
+                    appData.info[field] = e.target.value;
+                    document.getElementById(`a4-${field}`).value = e.target.value;
+                }
+                saveSessionTemp();
+            });
+        });
+
+        // --- 1. 提案選項編輯與渲染 ---
+        function renderEditorOptions() {
+            // A. 日期編輯器
+            const dateContainer = document.getElementById('date-options-edit');
+            dateContainer.innerHTML = '';
+            appData.proposals.dateOptions.forEach((opt, idx) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.gap = '6px';
+                row.innerHTML = `
+                    <input type="text" class="form-control" value="${opt.text}" oninput="updateOptionText('date', ${idx}, this.value)" style="flex-grow:1;">
+                    ${idx > 0 ? `<button class="btn-action-small btn-action-delete" onclick="removeOption('date', ${idx})"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                `;
+                dateContainer.appendChild(row);
+            });
+
+            // B. 地點編輯器
+            const locContainer = document.getElementById('location-options-edit');
+            locContainer.innerHTML = '';
+            appData.proposals.locationOptions.forEach((opt, idx) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.gap = '6px';
+                row.innerHTML = `
+                    <input type="text" class="form-control" value="${opt.text}" oninput="updateOptionText('location', ${idx}, this.value)" style="flex-grow:1;">
+                    ${idx > 1 ? `<button class="btn-action-small btn-action-delete" onclick="removeOption('location', ${idx})"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                `;
+                locContainer.appendChild(row);
+            });
+
+            // C. 點心選項編輯器 (主要鎖定兩個)
+            const foodContainer = document.getElementById('food-options-edit');
+            foodContainer.innerHTML = '';
+            appData.proposals.foodOptions.forEach((opt, idx) => {
+                const card = document.createElement('div');
+                card.style.backgroundColor = '#1e293b';
+                card.style.padding = '10px';
+                card.style.borderRadius = '8px';
+                card.style.border = '1px solid rgba(255,255,255,0.05)';
+                card.innerHTML = `
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <input type="text" class="form-control" value="${opt.emoji}" oninput="updateFoodEmoji(${idx}, this.value)" placeholder="表情符號" style="width:70px; text-align:center;">
+                        <input type="text" class="form-control" value="${opt.text}" oninput="updateFoodText(${idx}, this.value)" placeholder="點心名稱" style="flex-grow:1;">
+                    </div>
+                `;
+                foodContainer.appendChild(card);
+            });
+        }
+
+        // 選項編輯更新事件
+        function updateOptionText(type, idx, val) {
+            if (type === 'date') {
+                appData.proposals.dateOptions[idx].text = val;
+            } else if (type === 'location') {
+                const oldKey = appData.proposals.locationOptions[idx].text;
+                appData.proposals.locationOptions[idx].text = val;
+                // 同時更新個人食物分流的 Key
+                if (appData.proposals.personalFood[oldKey]) {
+                    appData.proposals.personalFood[val] = appData.proposals.personalFood[oldKey];
+                    delete appData.proposals.personalFood[oldKey];
+                } else if (!appData.proposals.personalFood[val]) {
+                    appData.proposals.personalFood[val] = [{ text: "選項一", checked: false }, { text: "選項二", checked: false }];
+                }
+            }
+            renderAll();
+        }
+
+        function updateFoodText(idx, val) {
+            appData.proposals.foodOptions[idx].text = val;
+            renderAll();
+        }
+
+        function updateFoodEmoji(idx, val) {
+            appData.proposals.foodOptions[idx].emoji = val;
+            renderAll();
+        }
+
+        function addCustomOption(type) {
+            if (type === 'date') {
+                appData.proposals.dateOptions.push({
+                    id: "date-o" + (appData.proposals.dateOptions.length + 1),
+                    text: "其他日期選項",
+                    checked: false
+                });
+            } else if (type === 'location') {
+                const newLocName = "🏪 新店家餐廳";
+                appData.proposals.locationOptions.push({
+                    id: "loc-o" + (appData.proposals.locationOptions.length + 1),
+                    text: newLocName,
+                    checked: false
+                });
+                appData.proposals.personalFood[newLocName] = [
+                    { text: "主餐一", checked: false },
+                    { text: "主餐二", checked: false },
+                    { text: "點心", checked: false }
+                ];
+            }
+            renderAll();
+        }
+
+        function removeOption(type, idx) {
+            if (type === 'date') {
+                appData.proposals.dateOptions.splice(idx, 1);
+            } else if (type === 'location') {
+                const key = appData.proposals.locationOptions[idx].text;
+                appData.proposals.locationOptions.splice(idx, 1);
+                delete appData.proposals.personalFood[key];
+            }
+            renderAll();
+        }
+
+        // --- 2. 左側個人自決 4人份編輯區渲染 ---
+        function renderEditorPersonalDecisions() {
+            const container = document.getElementById('sidebar-personal-decisions-container');
+            container.innerHTML = '';
+            
+            appData.proposals.personalDecisions.forEach((dec, idx) => {
+                const div = document.createElement('div');
+                div.style.marginBottom = '12px';
+                div.style.padding = '10px';
+                div.style.backgroundColor = '#1e293b';
+                div.style.borderRadius = '8px';
+                div.style.border = '1px solid rgba(255,255,255,0.05)';
+                div.innerHTML = `
+                    <div style="font-size:13px; font-weight:bold; color:#fff; margin-bottom:8px; display:flex; justify-content:space-between;">
+                        <span>👤 學生 ${idx+1}</span>
+                    </div>
+                    <div style="display:flex; gap:6px; margin-bottom:6px;">
+                        <input type="text" id="edit-pd-${idx}-name" class="form-control" value="${dec.name}" placeholder="姓名" style="width:30%; font-size:13px; padding:6px 10px;">
+                        <input type="text" id="edit-pd-${idx}-order" class="form-control" value="${dec.order}" placeholder="我想點" style="width:45%; font-size:13px; padding:6px 10px;">
+                        <input type="text" id="edit-pd-${idx}-cost" class="form-control" value="${dec.cost}" placeholder="金額" style="width:25%; font-size:13px; padding:6px 10px;">
+                    </div>
+                `;
+                
+                // 綁定事件
+                const nameInput = div.querySelector(`#edit-pd-${idx}-name`);
+                const orderInput = div.querySelector(`#edit-pd-${idx}-order`);
+                const costInput = div.querySelector(`#edit-pd-${idx}-cost`);
+                
+                nameInput.oninput = (e) => {
+                    appData.proposals.personalDecisions[idx].name = e.target.value;
+                    const a4Input = document.querySelector(`#a4-personal-grid .personal-card:nth-child(${idx+1}) .student-name`);
+                    if (a4Input) a4Input.value = e.target.value;
+                    saveSessionTemp();
+                };
+                orderInput.oninput = (e) => {
+                    appData.proposals.personalDecisions[idx].order = e.target.value;
+                    const a4Input = document.querySelector(`#a4-personal-grid .personal-card:nth-child(${idx+1}) .student-order`);
+                    if (a4Input) a4Input.value = e.target.value;
+                    saveSessionTemp();
+                };
+                costInput.oninput = (e) => {
+                    appData.proposals.personalDecisions[idx].cost = e.target.value;
+                    const a4Input = document.querySelector(`#a4-personal-grid .personal-card:nth-child(${idx+1}) .student-cost`);
+                    if (a4Input) a4Input.value = e.target.value;
+                    saveSessionTemp();
+                };
+                
+                container.appendChild(div);
+            });
+        }
+
+        // --- 3. A4 預覽畫面動態生成與點擊互動 ---
+
+        // A. 渲染 A4 日期多數決選項
+        function renderA4DateOptions() {
+            const container = document.getElementById('a4-date-options');
+            container.innerHTML = '';
+            appData.proposals.dateOptions.forEach((opt, idx) => {
+                const item = document.createElement('div');
+                item.className = `option-item ${opt.checked ? 'checked' : ''}`;
+                
+                let contentText = opt.text;
+                if (opt.isCustomText || opt.text.includes("其他")) {
+                    contentText = `其他：<input type="text" class="input-line" style="width:180px; font-size:17px;" value="${opt.customText || ''}" placeholder="請填寫日期" oninput="syncCustomDateText(${idx}, this.value)">`;
+                }
+
+                item.innerHTML = `
+                    <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
+                    <span class="option-text-span">${contentText}</span>
+                `;
+                item.onclick = (e) => {
+                    if (e.target.tagName.toLowerCase() === 'input') return; 
+                    toggleDateSelect(idx);
+                };
+                container.appendChild(item);
+            });
+        }
+
+        function toggleDateSelect(idx) {
+            appData.proposals.dateOptions[idx].checked = !appData.proposals.dateOptions[idx].checked;
+            renderAll();
+        }
+
+        // B. 渲染 A4 地點多數決選項
+        function renderA4LocationOptions() {
+            const container = document.getElementById('a4-location-options');
+            container.innerHTML = '';
+            
+            appData.proposals.locationOptions.forEach((opt, idx) => {
+                const item = document.createElement('div');
+                item.className = `option-item ${opt.checked ? 'checked' : ''}`;
+                item.innerHTML = `
+                    <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
+                    <span class="option-text-span">${opt.text}</span>
+                `;
+                item.onclick = () => {
+                    toggleLocationSelect(idx);
+                };
+                container.appendChild(item);
+            });
+        }
+
+        function toggleLocationSelect(selectedIdx) {
+            appData.proposals.locationOptions.forEach((opt, idx) => {
+                opt.checked = (idx === selectedIdx);
+            });
+            renderAll();
+        }
+
+        // C. 更新菜單選擇參考
+        function updateMenuReference() {
+            const activeLoc = appData.proposals.locationOptions.find(o => o.checked);
+            const refText = document.getElementById('menu-reference-text');
+            if (activeLoc) {
+                const locName = activeLoc.text;
+                let foodItems = [];
+                if (locName.includes("牛排")) {
+                    foodItems = ["牛排 (200元)", "豬排 (180元)", "雞排 (190元)"];
+                } else if (locName.includes("八方雲集")) {
+                    foodItems = ["招牌水餃 (6元/顆)", "招牌鍋貼 (6.5元/顆)", "酸辣湯 (35元)", "乾麵 (45元)"];
+                } else {
+                    const foods = appData.proposals.personalFood[locName] || [];
+                    foodItems = foods.map(f => f.text);
+                }
+                refText.innerHTML = `大家投票想去 <strong>${locName}</strong>。餐點參考：<span style="color:#c2410c; font-weight:bold;">${foodItems.length > 0 ? foodItems.join('、') : '自由填寫'}</span>`;
             } else {
-                document.getElementById('loginError').style.display = 'block';
+                refText.innerHTML = "請先在上方「我想去哪裡」投出多數決地點";
             }
         }
 
-        function logout() {
-            sessionStorage.removeItem('ispLoggedIn');
-            document.getElementById('loginOverlay').style.display = 'flex';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'none';
-            // 清空畫面上的資料以防被看到
-            document.getElementById('cardsContainer').innerHTML = '';
-            document.getElementById('midTermText').value = '';
-            document.getElementById('endTermText').value = '';
-            document.getElementById('userTabs').innerHTML = '';
+        // D. 渲染 4個個人決定卡片 (2x2網格)
+        function renderA4PersonalCards() {
+            const container = document.getElementById('a4-personal-grid');
+            container.innerHTML = '';
+            
+            appData.proposals.personalDecisions.forEach((dec, idx) => {
+                const card = document.createElement('div');
+                card.className = 'personal-card';
+                card.innerHTML = `
+                    <div class="personal-card-title">👤 學生 ${idx + 1}</div>
+                    <div class="personal-field">
+                        <span class="field-label">姓名：</span>
+                        <input type="text" class="input-line student-name" value="${dec.name}" placeholder="（請填寫）" oninput="syncPersonalCard(${idx}, 'name', this.value)">
+                    </div>
+                    <div class="personal-field">
+                        <span class="field-label">我想點：</span>
+                        <input type="text" class="input-line student-order" value="${dec.order}" placeholder="（請填寫）" oninput="syncPersonalCard(${idx}, 'order', this.value)">
+                    </div>
+                    <div class="personal-field">
+                        <span class="field-label">花費：</span>
+                        <input type="text" class="input-line student-cost" style="width: 70px; text-align:center;" value="${dec.cost}" placeholder="（填寫）" oninput="syncPersonalCard(${idx}, 'cost', this.value)"> 元
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
 
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentData));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "isp_backup.json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
+        function syncPersonalCard(idx, field, value) {
+            appData.proposals.personalDecisions[idx][field] = value;
+            // 同步左邊
+            const editInput = document.getElementById(`edit-pd-${idx}-${field}`);
+            if (editInput) {
+                editInput.value = value;
+            }
+            saveSessionTemp();
         }
 
-        function importData(event) {
+        function syncCustomDateText(idx, val) {
+            appData.proposals.dateOptions[idx].customText = val;
+            appData.proposals.dateOptions[idx].isCustomText = true;
+            saveSessionTemp();
+        }
+
+        // E. 渲染點心投票卡片
+        function renderA4FoodCards() {
+            const container = document.getElementById('a4-food-container');
+            container.innerHTML = '';
+            appData.proposals.foodOptions.forEach((opt, idx) => {
+                const card = document.createElement('div');
+                card.className = `food-card ${opt.checked ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div class="food-emoji">${opt.emoji}</div>
+                    <div class="food-title">${opt.text}</div>
+                    <div class="option-item ${opt.checked ? 'checked' : ''}">
+                        <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
+                        <span style="font-weight: bold;">投這一票</span>
+                    </div>
+                `;
+                card.onclick = () => {
+                    selectFoodCard(idx);
+                };
+                container.appendChild(card);
+            });
+        }
+
+        function selectFoodCard(selectedIdx) {
+            appData.proposals.foodOptions.forEach((opt, idx) => {
+                opt.checked = (idx === selectedIdx);
+            });
+            renderAll();
+        }
+
+        // F. 渲染分工表文字輸入框 (名字由學生手寫或直接輸入)
+        function renderA4DivisionInputs() {
+            const roles = ['prep', 'cook', 'assembly', 'clean'];
+            roles.forEach(role => {
+                const inputName = document.getElementById(`input-role-${role}-name`);
+                const inputText = document.getElementById(`input-role-${role}-text`);
+                
+                inputName.value = appData.proposals.division[role].name || '';
+                inputText.value = appData.proposals.division[role].text || '';
+                
+                inputName.oninput = (e) => {
+                    appData.proposals.division[role].name = e.target.value;
+                    saveSessionTemp();
+                };
+                inputText.oninput = (e) => {
+                    appData.proposals.division[role].text = e.target.value;
+                    saveSessionTemp();
+                };
+            });
+        }
+
+        // --- 4. 版面縮放與強制分頁邏輯 ---
+        function changePrintScale(scaleClass, writeState = true) {
+            const viewport = document.getElementById('a4-viewport');
+            viewport.classList.remove('print-compact', 'print-normal', 'print-spacious');
+            viewport.classList.add(scaleClass);
+            if (writeState) {
+                appData.printScale = scaleClass;
+                saveSessionTemp();
+            }
+        }
+
+        function togglePageBreak(section, isChecked, writeState = true) {
+            let targetEl;
+            if (section === 'self') {
+                targetEl = document.getElementById('a4-section-self');
+            } else if (section === 'prop2') {
+                targetEl = document.getElementById('print-area-2');
+            } else if (section === 'roles') {
+                targetEl = document.getElementById('a4-roles-badge');
+            }
+            
+            if (targetEl) {
+                if (isChecked) {
+                    targetEl.classList.add('forced-page-break');
+                } else {
+                    targetEl.classList.remove('forced-page-break');
+                }
+            }
+            
+            if (writeState) {
+                appData.pageBreaks[section] = isChecked;
+                saveSessionTemp();
+            }
+        }
+
+        // --- 5. A4 畫面文字直接修改模式 ---
+        function toggleTextEditMode() {
+            textEditMode = !textEditMode;
+            const btn = document.getElementById('btn-edit-mode');
+            const container = document.getElementById('a4-viewport');
+            
+            if (textEditMode) {
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> 鎖定與儲存文字';
+                btn.classList.remove('btn-premium-outline');
+                btn.classList.add('btn-premium-primary');
+                container.classList.add('edit-mode-active');
+                setEditable(true);
+                alert("🛠️ 文字修改模式已啟用！\n您可以直接點擊右側 A4 紙張上的標題、副標、說明文、表格標題、以及選項文字進行修改。修改後的樣式會直接保留在列印與 Word 匯出中！");
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 啟用版面文字修改';
+                btn.classList.remove('btn-premium-primary');
+                btn.classList.add('btn-premium-outline');
+                container.classList.remove('edit-mode-active');
+                setEditable(false);
+                saveEditedTexts();
+            }
+        }
+
+        function setEditable(value) {
+            const selectors = [
+                '#a4-title-display',
+                '.proposal-header',
+                '.section-badge',
+                '.section-desc',
+                '.visual-text',
+                '.division-table th div',
+                '.tip-box',
+                '.option-text-span',
+                '.food-title'
+            ];
+            selectors.forEach(sel => {
+                document.querySelectorAll(sel).forEach(el => {
+                    if (el.querySelector('input')) return; 
+                    el.contentEditable = value;
+                });
+            });
+        }
+
+        function saveEditedTexts() {
+            const titleText = document.getElementById('a4-title-display').innerText.replace(/\s/g, '');
+            if (titleText) {
+                appData.meetingTitle = titleText;
+                document.getElementById('toolbar-meeting-title').innerText = titleText;
+                document.getElementById('edit-title').value = titleText;
+            }
+            
+            document.querySelectorAll('#a4-food-container .food-card').forEach((card, idx) => {
+                const titleEl = card.querySelector('.food-title');
+                if (titleEl && appData.proposals.foodOptions[idx]) {
+                    appData.proposals.foodOptions[idx].text = titleEl.innerText;
+                }
+            });
+
+            saveSessionTemp();
+        }
+
+        // --- 6. 草稿存檔系統 (LocalStorage) ---
+        function generateId() {
+            return 'draft_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+        }
+
+        function saveSessionTemp() {
+            const sessionData = {
+                id: currentDraftId,
+                data: appData
+            };
+            localStorage.setItem('class_meeting_last_session', JSON.stringify(sessionData));
+        }
+
+        function saveCurrentDraft() {
+            let drafts = {};
+            const saved = localStorage.getItem('class_meeting_drafts');
+            if (saved) {
+                try { drafts = JSON.parse(saved); } catch(e){}
+            }
+
+            if (!currentDraftId) {
+                currentDraftId = generateId();
+            }
+
+            const timestamp = new Date().toLocaleString('zh-TW', { hour12: false });
+            drafts[currentDraftId] = {
+                title: appData.meetingTitle || "未命名會議紀錄",
+                timestamp: timestamp,
+                data: appData
+            };
+
+            localStorage.setItem('class_meeting_drafts', JSON.stringify(drafts));
+            saveSessionTemp();
+            loadDraftList();
+            alert(`💾 草稿「${appData.meetingTitle}」儲存成功！`);
+        }
+
+        function loadDraftList() {
+            const container = document.getElementById('drafts-list-container');
+            container.innerHTML = '';
+            
+            let drafts = {};
+            const saved = localStorage.getItem('class_meeting_drafts');
+            if (saved) {
+                try { drafts = JSON.parse(saved); } catch(e){}
+            }
+
+            const keys = Object.keys(drafts).sort((a,b) => b.localeCompare(a));
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="color:var(--sidebar-text-muted); font-size:14px; text-align:center; padding:15px;">尚無存檔紀錄</p>';
+                return;
+            }
+
+            keys.forEach(key => {
+                const item = drafts[key];
+                const card = document.createElement('div');
+                card.className = `draft-card ${currentDraftId === key ? 'active' : ''}`;
+                card.innerHTML = `
+                    <div class="draft-title">${item.title}</div>
+                    <div class="draft-meta">
+                        <span><i class="fa-solid fa-clock"></i> ${item.timestamp.split(' ')[0]}</span>
+                        <span>${item.data.info.recorder || '無紀錄者'}</span>
+                    </div>
+                    <div class="draft-actions">
+                        <button class="btn-action-small" onclick="loadDraft('${key}', event)"><i class="fa-solid fa-folder-open"></i> 載入</button>
+                        <button class="btn-action-small" onclick="copyDraft('${key}', event)"><i class="fa-solid fa-copy"></i> 複製</button>
+                        <button class="btn-action-small btn-action-delete" onclick="deleteDraft('${key}', event)"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                    </div>
+                `;
+                card.onclick = () => loadDraft(key);
+                container.appendChild(card);
+            });
+        }
+
+        function loadDraft(key, event) {
+            if (event) event.stopPropagation();
+            let drafts = {};
+            const saved = localStorage.getItem('class_meeting_drafts');
+            if (saved) {
+                try { 
+                    drafts = JSON.parse(saved);
+                    if (drafts[key]) {
+                        appData = JSON.parse(JSON.stringify(drafts[key].data));
+                        currentDraftId = key;
+                        renderAll();
+                        loadDraftList();
+                    }
+                } catch(e){}
+            }
+        }
+
+        function copyDraft(key, event) {
+            if (event) event.stopPropagation();
+            let drafts = {};
+            const saved = localStorage.getItem('class_meeting_drafts');
+            if (saved) {
+                try {
+                    drafts = JSON.parse(saved);
+                    if (drafts[key]) {
+                        const copyData = JSON.parse(JSON.stringify(drafts[key].data));
+                        copyData.meetingTitle = copyData.meetingTitle + " - 複製";
+                        
+                        const newId = generateId();
+                        const timestamp = new Date().toLocaleString('zh-TW', { hour12: false });
+                        
+                        drafts[newId] = {
+                            title: copyData.meetingTitle,
+                            timestamp: timestamp,
+                            data: copyData
+                        };
+                        localStorage.setItem('class_meeting_drafts', JSON.stringify(drafts));
+                        loadDraftList();
+                    }
+                } catch(e){}
+            }
+        }
+
+        function deleteDraft(key, event) {
+            if (event) event.stopPropagation();
+            if (!confirm("確定要刪除這份會議紀錄草稿嗎？此操作無法還原。")) return;
+            
+            let drafts = {};
+            const saved = localStorage.getItem('class_meeting_drafts');
+            if (saved) {
+                try {
+                    drafts = JSON.parse(saved);
+                    delete drafts[key];
+                    localStorage.setItem('class_meeting_drafts', JSON.stringify(drafts));
+                    if (currentDraftId === key) {
+                        currentDraftId = null;
+                    }
+                    loadDraftList();
+                    renderAll();
+                } catch(e){}
+            }
+        }
+
+        function loadDefaultTemplate() {
+            if (confirm("這將會覆蓋您目前未存檔的輸入內容，確定要載入演示範本嗎？")) {
+                appData = JSON.parse(JSON.stringify(demoTemplateData));
+                currentDraftId = null;
+                renderAll();
+                loadDraftList();
+            }
+        }
+
+        function loadBlankTemplate() {
+            if (confirm("這將會覆蓋您目前未存檔的輸入內容，確定要回復為初始空白版嗎？")) {
+                appData = JSON.parse(JSON.stringify(blankTemplateData));
+                currentDraftId = null;
+                renderAll();
+                loadDraftList();
+            }
+        }
+
+        function resetAllSelections() {
+            if (!confirm("確定要重設目前所有的勾選與投票狀態嗎？")) return;
+            
+            appData.proposals.dateOptions.forEach(o => o.checked = false);
+            appData.proposals.locationOptions.forEach(o => o.checked = false);
+            appData.proposals.foodOptions.forEach(o => o.checked = false);
+            
+            appData.proposals.personalDecisions.forEach(d => {
+                d.name = "";
+                d.order = "";
+                d.cost = "";
+            });
+
+            appData.proposals.division.prep.name = "";
+            appData.proposals.division.cook.name = "";
+            appData.proposals.division.assembly.name = "";
+            appData.proposals.division.clean.name = "";
+            
+            renderAll();
+        }
+
+        // --- 7. 匯出備份 JSON 檔案 ---
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                version: "1.2",
+                exportedAt: new Date().toLocaleString(),
+                drafts: JSON.parse(localStorage.getItem('class_meeting_drafts') || '{}')
+            }));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `班會紀錄備份_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerImport() {
+            document.getElementById('import-file-input').click();
+        }
+
+        function importDataJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const imported = JSON.parse(e.target.result);
-                    if(imported && typeof imported === 'object') {
-                        currentData = imported;
-                        saveData();
-                        renderTabs();
-                        renderDashboard();
-                        alert("資料匯入成功！");
+                    if (imported && imported.drafts) {
+                        let localDrafts = JSON.parse(localStorage.getItem('class_meeting_drafts') || '{}');
+                        
+                        Object.assign(localDrafts, imported.drafts);
+                        localStorage.setItem('class_meeting_drafts', JSON.stringify(localDrafts));
+                        
+                        loadDraftList();
+                        alert("🎉 會議紀錄備份檔案匯入成功！您可以在列表中點擊載入。");
                     } else {
-                        alert("檔案格式不正確");
+                        alert("檔案格式不正確，找不到相容的草稿紀錄。");
                     }
-                } catch(err) {
-                    alert("匯入失敗：" + err);
+                } catch (err) {
+                    alert("解析 JSON 檔案時發生錯誤。請確認檔案格式是否正確。");
                 }
             };
             reader.readAsText(file);
-            event.target.value = '';
         }
 
-        window.onload = function() {
-            if (sessionStorage.getItem('ispLoggedIn') === 'true') {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('logoutBtn').style.display = 'block';
-                init();
-            } else {
-                document.getElementById('loginOverlay').style.display = 'flex';
-                document.getElementById('logoutBtn').style.display = 'none';
+        // --- 8. 進階高相容型 Word 匯出 (.doc HTML相容版) ---
+        function exportToWordHtml() {
+            const page1Clone = document.getElementById('print-area-1').cloneNode(true);
+            const page2Clone = document.getElementById('print-area-2').cloneNode(true);
+
+            function sanitizeFormsForWord(container) {
+                // 1. 替換文字輸入框
+                const inputs = container.querySelectorAll('input[type="text"]');
+                inputs.forEach(input => {
+                    const val = input.value || input.placeholder || '';
+                    const span = document.createElement('span');
+                    span.style.fontWeight = 'bold';
+                    span.style.color = '#ea580c';
+                    span.innerText = val;
+                    input.parentNode.replaceChild(span, input);
+                });
+
+                // 2. 替換下拉選單
+                const selects = container.querySelectorAll('select');
+                selects.forEach(select => {
+                    const val = select.options[select.selectedIndex]?.text || '';
+                    const span = document.createElement('span');
+                    span.style.fontWeight = 'bold';
+                    span.style.fontSize = '18px';
+                    span.innerText = val;
+                    select.parentNode.replaceChild(span, select);
+                });
+
+                // 3. 處理 checkbox 圖示
+                const optionItems = container.querySelectorAll('.option-item');
+                optionItems.forEach(item => {
+                    const checkbox = item.querySelector('.checkbox-custom');
+                    if (checkbox) {
+                        const icon = document.createElement('span');
+                        icon.style.marginRight = '8px';
+                        icon.style.fontWeight = 'bold';
+                        icon.style.fontSize = '18px';
+                        
+                        const isChecked = item.classList.contains('checked') || item.classList.contains('checked-self') || item.parentNode.parentNode.classList.contains('selected');
+                        
+                        if (isChecked) {
+                            icon.innerText = '☑';
+                            icon.style.color = '#4f46e5';
+                        } else {
+                            icon.innerText = '☐';
+                            icon.style.color = '#64748b';
+                        }
+                        checkbox.parentNode.replaceChild(icon, checkbox);
+                    }
+                });
             }
-        };
+
+            sanitizeFormsForWord(page1Clone);
+            sanitizeFormsForWord(page2Clone);
+
+            const styles = `
+                <style>
+                    body { font-family: 'MS Gothic', 'Noto Sans TC', Arial, sans-serif; padding: 20px; color: #0f172a; line-height: 1.5; }
+                    h1 { text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 20px; color: #0f172a; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    th, td { border: 2px solid #cbd5e1; padding: 12px; vertical-align: middle; }
+                    .info-label { background-color: #f1f5f9; font-weight: bold; width: 15%; text-align: center; }
+                    .proposal-header { background-color: #0f172a; color: white; padding: 12px; font-weight: bold; margin-top: 20px; font-size: 18px; border-radius: 4px; }
+                    .section-badge { background-color: #4f46e5; color: white; padding: 6px 12px; font-weight: bold; margin-bottom: 10px; display: inline-block; font-size: 15px; border-radius: 4px; }
+                    .badge-self { background-color: #ea580c; }
+                    .section-desc { font-size: 14px; color: #475569; margin-bottom: 10px; font-weight: bold; }
+                    .record-table { border: 3px solid #cbd5e1; }
+                    .col-visual { width: 30%; background-color: #f8fafc; font-weight: bold; }
+                    .col-option { width: 70%; }
+                    .visual-card { display: flex; align-items: center; }
+                    .visual-icon { font-size: 24px; margin-right: 10px; }
+                    .visual-text { font-size: 16px; font-weight: bold; color: #0f172a; }
+                    .option-list { margin-bottom: 8px; }
+                    .option-item { margin-bottom: 6px; font-size: 16px; display: flex; align-items: center; }
+                    
+                    /* 個人自決卡片 Word 樣式 */
+                    .personal-grid { display: block; width: 100%; margin-top: 15px; }
+                    .personal-card { display: inline-block; border: 3px solid #ea580c; padding: 12px; border-radius: 8px; background-color: #fffaf7; width: 45%; margin: 2%; vertical-align: top; box-sizing: border-box; }
+                    .personal-card-title { font-weight: bold; color: #ea580c; font-size: 16px; border-bottom: 2px dashed #ea580c; padding-bottom: 4px; margin-bottom: 8px; }
+                    .personal-field { margin-bottom: 6px; font-weight: bold; font-size: 14px; }
+
+                    .food-vote-container { display: table; width: 100%; margin-bottom: 20px; }
+                    .food-card { display: table-cell; border: 3px solid #cbd5e1; padding: 15px; text-align: center; width: 50%; background-color: #ffffff; vertical-align: middle; }
+                    .food-card.selected { background-color: #ccfbf1; border-color: #0d9488; }
+                    .food-emoji { font-size: 32px; margin-bottom: 5px; }
+                    .food-title { font-weight: bold; font-size: 18px; color: #0f172a; }
+                    .division-table th { background-color: #f1f5f9; font-size: 16px; width: 30%; text-align: left; }
+                    .division-role-subtitle { font-size: 11px; color: #64748b; font-weight: normal; margin-top: 2px; }
+                    .tip-box { background-color: #fffbeb; border-left: 5px solid #f59e0b; padding: 12px; font-size: 13px; line-height: 1.4; margin-top: 15px; color: #b45309; }
+                </style>
+            `;
+
+            const wordHtml = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset="utf-8">
+                    <title>${appData.meetingTitle}</title>
+                    ${styles}
+                </head>
+                <body>
+                    ${page1Clone.innerHTML}
+                    <br style="page-break-before:always; clear:both; mso-break-type:section-break;">
+                    ${page2Clone.innerHTML}
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff' + wordHtml], {
+                type: 'application/msword;charset=utf-8'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${appData.meetingTitle || '班會紀錄'}(易讀版).doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- 9. 側邊欄控制與導覽 ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+        }
     </script>
-// Firebase Configuration
-        // 請將以下內容替換為您的 Firebase 專案設定
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
 </body>
 </html>
