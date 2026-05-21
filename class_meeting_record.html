@@ -439,6 +439,30 @@
             align-items: center;
             gap: 12px;
         }
+        .header-input-inline {
+            background: transparent !important;
+            border: none !important;
+            color: white !important;
+            font-size: inherit !important;
+            font-weight: inherit !important;
+            font-family: inherit !important;
+            outline: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .badge-input-inline {
+            background: transparent !important;
+            border: none !important;
+            color: white !important;
+            font-size: inherit !important;
+            font-weight: inherit !important;
+            font-family: inherit !important;
+            outline: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
 
         /* 區塊副標：多數決 / 個人決定 */
         .section-badge {
@@ -1327,8 +1351,9 @@
                     </table>
 
                     <!-- 提案一 -->
-                    <div class="proposal-header" id="a4-prop1-header" style="background-color: var(--primary-group);" contenteditable="false">
-                        <i class="fa-solid fa-store"></i> 提案一：社區活動店家票選
+                    <div class="proposal-header" id="a4-prop1-header" style="background-color: var(--primary-group);">
+                        <i class="fa-solid fa-store"></i>
+                        <input type="text" id="a4-prop1-header-input" class="header-input-inline" placeholder="請輸入提案一主題..." oninput="syncProp1Title(this.value)">
                     </div>
 
                     <!-- 👥 集合決定 -->
@@ -1388,8 +1413,9 @@
 
                 <!-- A4 第二頁：提案二與分工表 -->
                 <div id="print-area-2" class="page-container page-break">
-                    <div class="proposal-header" id="a4-prop2-header" style="background-color: var(--primary-teal);" contenteditable="false">
-                        <i class="fa-solid fa-cookie-bite"></i> 提案二：點心餐點製作票選
+                    <div class="proposal-header" id="a4-prop2-header" style="background-color: var(--primary-teal);">
+                        <i class="fa-solid fa-cookie-bite"></i>
+                        <input type="text" id="a4-prop2-header-input" class="header-input-inline" placeholder="請輸入提案二主題..." oninput="syncProp2Title(this.value)">
                     </div>
                     
                     <div class="section-badge badge-group" id="a4-prop2-badge" style="background-color: var(--primary-teal);" contenteditable="false">
@@ -1403,8 +1429,9 @@
                     </div>
 
                     <!-- 點心分工表 -->
-                    <div class="section-badge badge-self" id="a4-roles-badge" style="background-color: #0f172a; margin-top: 15px;" contenteditable="false">
-                        <i class="fa-solid fa-people-carry-box"></i> 👨‍🍳 點心製作工作分配表 ✍️
+                    <div class="section-badge badge-self" id="a4-roles-badge" style="background-color: #0f172a; margin-top: 15px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-people-carry-box"></i>
+                        <input type="text" id="a4-roles-badge-input" class="badge-input-inline" placeholder="請輸入分工表標題..." oninput="syncRolesTitle(this.value)">
                     </div>
                     <div class="section-desc" id="a4-roles-desc" contenteditable="false">說明：請在欄位中寫上自己最想嘗試的任務名稱（學生可直接手寫填寫）。</div>
 
@@ -1705,8 +1732,8 @@
             renderEditorOptions();
 
             // 3.5. 同步所有標題與說明文字到 A4
-            const a4Prop1Header = document.getElementById('a4-prop1-header');
-            if (a4Prop1Header) a4Prop1Header.innerHTML = `<i class="fa-solid fa-store"></i> ${appData.prop1Title}`;
+            const a4Prop1Input = document.getElementById('a4-prop1-header-input');
+            if (a4Prop1Input) a4Prop1Input.value = appData.prop1Title || '';
             
             const a4Prop1Badge = document.getElementById('a4-prop1-badge');
             if (a4Prop1Badge) a4Prop1Badge.innerHTML = `<i class="fa-solid fa-users"></i> ${appData.prop1BadgeTitle}`;
@@ -1720,8 +1747,8 @@
             const a4DescSelf = document.getElementById('a4-desc-self');
             if (a4DescSelf) a4DescSelf.innerText = appData.prop1SelfDesc;
 
-            const a4Prop2Header = document.getElementById('a4-prop2-header');
-            if (a4Prop2Header) a4Prop2Header.innerHTML = `<i class="fa-solid fa-cookie-bite"></i> ${appData.prop2Title}`;
+            const a4Prop2Input = document.getElementById('a4-prop2-header-input');
+            if (a4Prop2Input) a4Prop2Input.value = appData.prop2Title || '';
             
             const a4Prop2Badge = document.getElementById('a4-prop2-badge');
             if (a4Prop2Badge) a4Prop2Badge.innerHTML = `<i class="fa-solid fa-users"></i> ${appData.prop2BadgeTitle}`;
@@ -1729,8 +1756,8 @@
             const a4Prop2Desc = document.getElementById('a4-prop2-desc');
             if (a4Prop2Desc) a4Prop2Desc.innerText = appData.prop2Desc;
             
-            const a4RolesBadge = document.getElementById('a4-roles-badge');
-            if (a4RolesBadge) a4RolesBadge.innerHTML = `<i class="fa-solid fa-people-carry-box"></i> ${appData.rolesTitle}`;
+            const a4RolesInput = document.getElementById('a4-roles-badge-input');
+            if (a4RolesInput) a4RolesInput.value = appData.rolesTitle || '';
             
             const a4RolesDesc = document.getElementById('a4-roles-desc');
             if (a4RolesDesc) a4RolesDesc.innerText = appData.rolesDesc;
@@ -1796,22 +1823,28 @@
         // 提案標題與工作分配自訂欄位同步
         function syncProp1Title(val) {
             appData.prop1Title = val;
-            const a4Header = document.getElementById('a4-prop1-header');
-            if (a4Header) a4Header.innerHTML = `<i class="fa-solid fa-store"></i> ${val}`;
+            const editInput = document.getElementById('edit-prop1-title');
+            if (editInput) editInput.value = val;
+            const a4Input = document.getElementById('a4-prop1-header-input');
+            if (a4Input && document.activeElement !== a4Input) a4Input.value = val;
             saveSessionTemp();
         }
 
         function syncProp2Title(val) {
             appData.prop2Title = val;
-            const a4Header = document.getElementById('a4-prop2-header');
-            if (a4Header) a4Header.innerHTML = `<i class="fa-solid fa-cookie-bite"></i> ${val}`;
+            const editInput = document.getElementById('edit-prop2-title');
+            if (editInput) editInput.value = val;
+            const a4Input = document.getElementById('a4-prop2-header-input');
+            if (a4Input && document.activeElement !== a4Input) a4Input.value = val;
             saveSessionTemp();
         }
 
         function syncRolesTitle(val) {
             appData.rolesTitle = val;
-            const a4Badge = document.getElementById('a4-roles-badge');
-            if (a4Badge) a4Badge.innerHTML = `<i class="fa-solid fa-people-carry-box"></i> ${val}`;
+            const editInput = document.getElementById('edit-roles-title');
+            if (editInput) editInput.value = val;
+            const a4Input = document.getElementById('a4-roles-badge-input');
+            if (a4Input && document.activeElement !== a4Input) a4Input.value = val;
             saveSessionTemp();
         }
 
@@ -2466,8 +2499,13 @@
             }
             
             // 儲存提案一之變更
-            const prop1Header = document.getElementById('a4-prop1-header');
-            if (prop1Header) appData.prop1Title = prop1Header.innerText.trim();
+            const prop1HeaderInput = document.getElementById('a4-prop1-header-input');
+            if (prop1HeaderInput) {
+                appData.prop1Title = prop1HeaderInput.value.trim();
+            } else {
+                const prop1Header = document.getElementById('a4-prop1-header');
+                if (prop1Header) appData.prop1Title = prop1Header.innerText.trim();
+            }
             const prop1Badge = document.getElementById('a4-prop1-badge');
             if (prop1Badge) appData.prop1BadgeTitle = prop1Badge.innerText.trim();
             const prop1Desc = document.getElementById('a4-prop1-desc');
@@ -2478,14 +2516,25 @@
             if (prop1SelfDesc) appData.prop1SelfDesc = prop1SelfDesc.innerText.trim();
 
             // 儲存提案二與分工表之變更
-            const prop2Header = document.getElementById('a4-prop2-header');
-            if (prop2Header) appData.prop2Title = prop2Header.innerText.trim();
+            const prop2HeaderInput = document.getElementById('a4-prop2-header-input');
+            if (prop2HeaderInput) {
+                appData.prop2Title = prop2HeaderInput.value.trim();
+            } else {
+                const prop2Header = document.getElementById('a4-prop2-header');
+                if (prop2Header) appData.prop2Title = prop2Header.innerText.trim();
+            }
             const prop2Badge = document.getElementById('a4-prop2-badge');
             if (prop2Badge) appData.prop2BadgeTitle = prop2Badge.innerText.trim();
             const prop2Desc = document.getElementById('a4-prop2-desc');
             if (prop2Desc) appData.prop2Desc = prop2Desc.innerText.trim();
-            const rolesBadge = document.getElementById('a4-roles-badge');
-            if (rolesBadge) appData.rolesTitle = rolesBadge.innerText.trim();
+            
+            const rolesBadgeInput = document.getElementById('a4-roles-badge-input');
+            if (rolesBadgeInput) {
+                appData.rolesTitle = rolesBadgeInput.value.trim();
+            } else {
+                const rolesBadge = document.getElementById('a4-roles-badge');
+                if (rolesBadge) appData.rolesTitle = rolesBadge.innerText.trim();
+            }
             const rolesDesc = document.getElementById('a4-roles-desc');
             if (rolesDesc) appData.rolesDesc = rolesDesc.innerText.trim();
 
@@ -2754,6 +2803,8 @@
                     span.style.fontWeight = 'bold';
                     if (input.classList.contains('option-input-inline') || input.classList.contains('food-title-input')) {
                         span.style.color = '#0f172a'; // 選項與點心名稱為深色
+                    } else if (input.classList.contains('header-input-inline') || input.classList.contains('badge-input-inline')) {
+                        span.style.color = '#ffffff'; // 標題與徽章內置輸入改為白色以利於在深色背景顯示
                     } else {
                         span.style.color = '#ea580c'; // 學生卡片輸入等為橘色
                     }
