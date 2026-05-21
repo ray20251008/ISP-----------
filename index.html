@@ -588,6 +588,54 @@
             border-bottom-color: var(--accent-color);
         }
 
+        /* 整合型選項行內輸入框 */
+        .option-input-inline {
+            border: none;
+            border-bottom: 1px dashed #94a3b8;
+            font-size: 19px;
+            font-weight: bold;
+            color: #0f172a;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            max-width: 320px;
+            padding: 2px 6px;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+        .option-input-inline:hover {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-bottom-color: var(--accent-color);
+        }
+        .option-input-inline:focus {
+            border-bottom: 2px solid var(--accent-color);
+            background-color: #fff;
+        }
+
+        .food-title-input {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0f172a;
+            border: none;
+            border-bottom: 1px dashed #94a3b8;
+            background: transparent;
+            text-align: center;
+            outline: none;
+            width: 90%;
+            margin-bottom: 12px;
+            padding: 2px;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+        .food-title-input:hover {
+            background-color: rgba(13, 148, 136, 0.05);
+            border-bottom-color: var(--primary-teal);
+        }
+        .food-title-input:focus {
+            border-bottom: 2px solid var(--primary-teal);
+            background-color: #fff;
+        }
+
         /* 4個學生自決卡片排版 */
         .personal-grid {
             display: grid;
@@ -1734,17 +1782,11 @@
                 const item = document.createElement('div');
                 item.className = `option-item ${opt.checked ? 'checked' : ''}`;
                 
-                let contentText = opt.text;
-                if (opt.isCustomText || opt.text.includes("其他")) {
-                    contentText = `其他：<input type="text" class="input-line" style="width:180px; font-size:17px;" value="${opt.customText || ''}" placeholder="請填寫日期" oninput="syncCustomDateText(${idx}, this.value)">`;
-                }
-
                 item.innerHTML = `
-                    <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
-                    <span class="option-text-span">${contentText}</span>
+                    <span class="checkbox-custom" onclick="toggleDateSelect(${idx}); event.stopPropagation();"><i class="fa-solid fa-check"></i></span>
+                    <input type="text" class="option-input-inline" value="${opt.text}" placeholder="請填寫日期選項..." oninput="syncDateOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
                 `;
-                item.onclick = (e) => {
-                    if (e.target.tagName.toLowerCase() === 'input') return; 
+                item.onclick = () => {
                     toggleDateSelect(idx);
                 };
                 container.appendChild(item);
@@ -1765,8 +1807,8 @@
                 const item = document.createElement('div');
                 item.className = `option-item ${opt.checked ? 'checked' : ''}`;
                 item.innerHTML = `
-                    <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
-                    <span class="option-text-span">${opt.text}</span>
+                    <span class="checkbox-custom" onclick="toggleLocationSelect(${idx}); event.stopPropagation();"><i class="fa-solid fa-check"></i></span>
+                    <input type="text" class="option-input-inline" value="${opt.text}" placeholder="請填寫地點選項..." oninput="syncLocationOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
                 `;
                 item.onclick = () => {
                     toggleLocationSelect(idx);
@@ -1840,9 +1882,53 @@
             saveSessionTemp();
         }
 
-        function syncCustomDateText(idx, val) {
-            appData.proposals.dateOptions[idx].customText = val;
-            appData.proposals.dateOptions[idx].isCustomText = true;
+        function syncDateOptionText(idx, val) {
+            appData.proposals.dateOptions[idx].text = val;
+            const container = document.getElementById('date-options-edit');
+            if (container) {
+                const inputs = container.querySelectorAll('input');
+                if (inputs && inputs[idx]) {
+                    inputs[idx].value = val;
+                }
+            }
+            saveSessionTemp();
+        }
+
+        function syncLocationOptionText(idx, val) {
+            const oldKey = appData.proposals.locationOptions[idx].text;
+            appData.proposals.locationOptions[idx].text = val;
+            
+            const container = document.getElementById('location-options-edit');
+            if (container) {
+                const inputs = container.querySelectorAll('input');
+                if (inputs && inputs[idx]) {
+                    inputs[idx].value = val;
+                }
+            }
+
+            if (appData.proposals.personalFood[oldKey]) {
+                appData.proposals.personalFood[val] = appData.proposals.personalFood[oldKey];
+                delete appData.proposals.personalFood[oldKey];
+            } else if (!appData.proposals.personalFood[val]) {
+                appData.proposals.personalFood[val] = [{ text: "主餐一", checked: false }, { text: "主餐二", checked: false }];
+            }
+            
+            updateMenuReference();
+            saveSessionTemp();
+        }
+
+        function syncFoodOptionText(idx, val) {
+            appData.proposals.foodOptions[idx].text = val;
+            const container = document.getElementById('food-options-edit');
+            if (container) {
+                const divs = container.querySelectorAll('div');
+                if (divs && divs[idx]) {
+                    const textInput = divs[idx].querySelector('input[placeholder="點心名稱"]');
+                    if (textInput) {
+                        textInput.value = val;
+                    }
+                }
+            }
             saveSessionTemp();
         }
 
@@ -1854,8 +1940,8 @@
                 const card = document.createElement('div');
                 card.className = `food-card ${opt.checked ? 'selected' : ''}`;
                 card.innerHTML = `
-                    <div class="food-emoji">${opt.emoji}</div>
-                    <div class="food-title">${opt.text}</div>
+                    <div class="food-emoji" onclick="event.stopPropagation();">${opt.emoji}</div>
+                    <input type="text" class="food-title-input" value="${opt.text}" placeholder="請填寫點心名稱..." oninput="syncFoodOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
                     <div class="option-item ${opt.checked ? 'checked' : ''}">
                         <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
                         <span style="font-weight: bold;">投這一票</span>
@@ -2226,7 +2312,11 @@
                     const val = input.value || input.placeholder || '';
                     const span = document.createElement('span');
                     span.style.fontWeight = 'bold';
-                    span.style.color = '#ea580c';
+                    if (input.classList.contains('option-input-inline') || input.classList.contains('food-title-input')) {
+                        span.style.color = '#0f172a'; // 選項與點心名稱為深色
+                    } else {
+                        span.style.color = '#ea580c'; // 學生卡片輸入等為橘色
+                    }
                     span.innerText = val;
                     input.parentNode.replaceChild(span, input);
                 });
