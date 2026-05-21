@@ -1737,7 +1737,7 @@
                 row.style.display = 'flex';
                 row.style.gap = '6px';
                 row.innerHTML = `
-                    <input type="text" class="form-control" value="${opt.text}" oninput="updateOptionText('date', ${idx}, this.value)" style="flex-grow:1;">
+                    <input type="text" class="form-control" value="${opt.text}" oninput="updateOptionTextDirect('date', ${idx}, this.value)" onblur="renderAll()" style="flex-grow:1;">
                     ${idx > 0 ? `<button class="btn-action-small btn-action-delete" onclick="removeOption('date', ${idx})"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                 `;
                 dateContainer.appendChild(row);
@@ -1751,7 +1751,7 @@
                 row.style.display = 'flex';
                 row.style.gap = '6px';
                 row.innerHTML = `
-                    <input type="text" class="form-control" value="${opt.text}" oninput="updateOptionText('location', ${idx}, this.value)" style="flex-grow:1;">
+                    <input type="text" class="form-control" value="${opt.text}" oninput="updateOptionTextDirect('location', ${idx}, this.value)" onblur="renderAll()" style="flex-grow:1;">
                     ${idx > 1 ? `<button class="btn-action-small btn-action-delete" onclick="removeOption('location', ${idx})"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                 `;
                 locContainer.appendChild(row);
@@ -1769,8 +1769,8 @@
                 card.style.marginBottom = '8px';
                 card.innerHTML = `
                     <div style="display:flex; gap:8px; align-items:center;">
-                        <input type="text" class="form-control" value="${opt.emoji}" oninput="updateFoodEmoji(${idx}, this.value)" placeholder="表情" style="width:50px; text-align:center;">
-                        <input type="text" class="form-control" value="${opt.text}" oninput="updateFoodText(${idx}, this.value)" placeholder="點心名稱" style="flex-grow:1;">
+                        <input type="text" class="form-control" value="${opt.emoji}" oninput="updateFoodEmojiDirect(${idx}, this.value)" onblur="renderAll()" placeholder="表情" style="width:50px; text-align:center;">
+                        <input type="text" class="form-control" value="${opt.text}" oninput="updateFoodTextDirect(${idx}, this.value)" onblur="renderAll()" placeholder="點心名稱" style="flex-grow:1;">
                         ${idx > 1 ? `
                         <button class="btn-action-small btn-action-delete" onclick="removeOption('food', ${idx})" style="padding: 6px 8px; margin: 0;"><i class="fa-solid fa-trash-can"></i></button>
                         ` : ''}
@@ -1780,14 +1780,13 @@
             });
         }
 
-        // 選項編輯更新事件
+        // 選項編輯更新事件 (保留相容性)
         function updateOptionText(type, idx, val) {
             if (type === 'date') {
                 appData.proposals.dateOptions[idx].text = val;
             } else if (type === 'location') {
                 const oldKey = appData.proposals.locationOptions[idx].text;
                 appData.proposals.locationOptions[idx].text = val;
-                // 同時更新個人食物分流的 Key
                 if (appData.proposals.personalFood[oldKey]) {
                     appData.proposals.personalFood[val] = appData.proposals.personalFood[oldKey];
                     delete appData.proposals.personalFood[oldKey];
@@ -1806,6 +1805,48 @@
         function updateFoodEmoji(idx, val) {
             appData.proposals.foodOptions[idx].emoji = val;
             renderAll();
+        }
+
+        // 新增的行內直接 DOM 更新，避免 input 時畫面重繪導致焦點流失
+        function updateOptionTextDirect(type, idx, val) {
+            if (type === 'date') {
+                appData.proposals.dateOptions[idx].text = val;
+                const a4Input = document.getElementById(`date-opt-input-${idx}`);
+                if (a4Input) a4Input.value = val;
+            } else if (type === 'location') {
+                const oldKey = appData.proposals.locationOptions[idx].text;
+                appData.proposals.locationOptions[idx].text = val;
+                const a4Input = document.getElementById(`location-opt-input-${idx}`);
+                if (a4Input) a4Input.value = val;
+                
+                // 同時更新個人食物分流的 Key
+                if (appData.proposals.personalFood[oldKey]) {
+                    appData.proposals.personalFood[val] = appData.proposals.personalFood[oldKey];
+                    delete appData.proposals.personalFood[oldKey];
+                } else if (!appData.proposals.personalFood[val]) {
+                    appData.proposals.personalFood[val] = [{ text: "主餐一", checked: false }, { text: "主餐二", checked: false }];
+                }
+            }
+            saveSessionTemp();
+        }
+
+        function updateFoodTextDirect(idx, val) {
+            appData.proposals.foodOptions[idx].text = val;
+            const a4Inputs = document.querySelectorAll('#a4-food-container .food-title-input');
+            if (a4Inputs && a4Inputs[idx]) {
+                a4Inputs[idx].value = val;
+            }
+            saveSessionTemp();
+        }
+
+        function updateFoodEmojiDirect(idx, val) {
+            appData.proposals.foodOptions[idx].emoji = val;
+            const a4Cards = document.querySelectorAll('#a4-food-container .food-card');
+            if (a4Cards && a4Cards[idx]) {
+                const emojiDiv = a4Cards[idx].querySelector('.food-emoji');
+                if (emojiDiv) emojiDiv.innerText = val;
+            }
+            saveSessionTemp();
         }
 
         function addCustomOption(type) {
@@ -1914,7 +1955,7 @@
                 
                 item.innerHTML = `
                     <span class="checkbox-custom" onclick="toggleDateSelect(${idx}); event.stopPropagation();"><i class="fa-solid fa-check"></i></span>
-                    <input type="text" class="option-input-inline" id="date-opt-input-${idx}" value="${opt.text}" placeholder="請填寫日期選項..." oninput="syncDateOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
+                    <input type="text" class="option-input-inline" id="date-opt-input-${idx}" value="${opt.text}" placeholder="請填寫日期選項..." oninput="syncDateOptionText(${idx}, this.value)" onblur="renderAll();">
                     <button class="btn-inline-edit no-print" onclick="editOptionPrompt('date', ${idx}); event.stopPropagation();" title="編輯選項">
                         <i class="fa-solid fa-pen"></i>
                     </button>
@@ -1924,7 +1965,10 @@
                     </button>
                     ` : ''}
                 `;
-                item.onclick = () => {
+                item.onclick = (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.closest('.btn-inline-edit') || e.target.closest('.btn-inline-delete')) {
+                        return;
+                    }
                     toggleDateSelect(idx);
                 };
                 container.appendChild(item);
@@ -1957,7 +2001,7 @@
                 item.className = `option-item ${opt.checked ? 'checked' : ''}`;
                 item.innerHTML = `
                     <span class="checkbox-custom" onclick="toggleLocationSelect(${idx}); event.stopPropagation();"><i class="fa-solid fa-check"></i></span>
-                    <input type="text" class="option-input-inline" id="location-opt-input-${idx}" value="${opt.text}" placeholder="請填寫地點選項..." oninput="syncLocationOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
+                    <input type="text" class="option-input-inline" id="location-opt-input-${idx}" value="${opt.text}" placeholder="請填寫地點選項..." oninput="syncLocationOptionText(${idx}, this.value)" onblur="renderAll();">
                     <button class="btn-inline-edit no-print" onclick="editOptionPrompt('location', ${idx}); event.stopPropagation();" title="編輯選項">
                         <i class="fa-solid fa-pen"></i>
                     </button>
@@ -1967,7 +2011,10 @@
                     </button>
                     ` : ''}
                 `;
-                item.onclick = () => {
+                item.onclick = (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.closest('.btn-inline-edit') || e.target.closest('.btn-inline-delete')) {
+                        return;
+                    }
                     toggleLocationSelect(idx);
                 };
                 container.appendChild(item);
@@ -2130,17 +2177,13 @@
             appData.proposals.foodOptions[idx].text = val;
             const container = document.getElementById('food-options-edit');
             if (container) {
-                const divs = container.querySelectorAll('div');
-                if (divs && divs[idx]) {
-                    const textInput = divs[idx].querySelector('input[placeholder="點心名稱"]');
-                    if (textInput) {
-                        textInput.value = val;
-                    }
+                const nameInputs = container.querySelectorAll('input[placeholder="點心名稱"]');
+                if (nameInputs && nameInputs[idx]) {
+                    nameInputs[idx].value = val;
                 }
             }
             saveSessionTemp();
         }
-
         // E. 渲染點心投票卡片
         function renderA4FoodCards() {
             const container = document.getElementById('a4-food-container');
@@ -2149,8 +2192,8 @@
                 const card = document.createElement('div');
                 card.className = `food-card ${opt.checked ? 'selected' : ''}`;
                 card.innerHTML = `
-                    <div class="food-emoji" onclick="event.stopPropagation();">${opt.emoji}</div>
-                    <input type="text" class="food-title-input" value="${opt.text}" placeholder="請填寫點心名稱..." oninput="syncFoodOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
+                    <div class="food-emoji">${opt.emoji}</div>
+                    <input type="text" class="food-title-input food-title" value="${opt.text}" placeholder="請填寫點心名稱..." oninput="syncFoodOptionText(${idx}, this.value)" onblur="renderAll();">
                     <div class="option-item ${opt.checked ? 'checked' : ''}">
                         <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
                         <span style="font-weight: bold;">投這一票</span>
@@ -2166,7 +2209,10 @@
                         ` : ''}
                     </div>
                 `;
-                card.onclick = () => {
+                card.onclick = (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.closest('.food-card-actions') || e.target.classList.contains('food-emoji')) {
+                        return;
+                    }
                     selectFoodCard(idx);
                 };
                 container.appendChild(card);
@@ -2189,7 +2235,6 @@
             `;
             container.parentNode.insertBefore(addBtnRow, container.nextSibling);
         }
-
         function selectFoodCard(selectedIdx) {
             appData.proposals.foodOptions.forEach((opt, idx) => {
                 opt.checked = (idx === selectedIdx);
@@ -2296,7 +2341,7 @@
             ];
             selectors.forEach(sel => {
                 document.querySelectorAll(sel).forEach(el => {
-                    if (el.querySelector('input')) return; 
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.querySelector('input')) return; 
                     el.contentEditable = value;
                 });
             });
@@ -2348,11 +2393,11 @@
                 }
             });
 
-            // 儲存點心名稱（舊卡片相容性）
+            // 儲存點心名稱
             document.querySelectorAll('#a4-food-container .food-card').forEach((card, idx) => {
-                const titleEl = card.querySelector('.food-title');
-                if (titleEl && appData.proposals.foodOptions[idx]) {
-                    appData.proposals.foodOptions[idx].text = titleEl.innerText;
+                const titleInput = card.querySelector('.food-title-input');
+                if (titleInput && appData.proposals.foodOptions[idx]) {
+                    appData.proposals.foodOptions[idx].text = titleInput.value;
                 }
             });
 
