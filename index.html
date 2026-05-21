@@ -597,8 +597,8 @@
             color: #0f172a;
             background: transparent;
             outline: none;
-            width: 100%;
-            max-width: 320px;
+            flex-grow: 1;
+            max-width: 280px;
             padding: 2px 6px;
             transition: all 0.2s;
             border-radius: 4px;
@@ -610,6 +610,53 @@
         .option-input-inline:focus {
             border-bottom: 2px solid var(--accent-color);
             background-color: #fff;
+        }
+
+        /* 行內編輯按鈕與樣式 */
+        .btn-inline-edit, .btn-inline-delete {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            font-size: 14px;
+            color: #94a3b8;
+            transition: all 0.2s;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-inline-edit {
+            margin-left: auto;
+        }
+        .btn-inline-edit:hover {
+            color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+        .btn-inline-delete:hover {
+            color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        .btn-inline-add {
+            background-color: transparent;
+            border: 1px dashed #cbd5e1;
+            color: #475569;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            margin-top: 6px;
+        }
+        .btn-inline-add:hover {
+            border-color: var(--primary-group);
+            color: var(--primary-group);
+            background-color: var(--primary-group-light);
         }
 
         .food-title-input {
@@ -1784,13 +1831,32 @@
                 
                 item.innerHTML = `
                     <span class="checkbox-custom" onclick="toggleDateSelect(${idx}); event.stopPropagation();"><i class="fa-solid fa-check"></i></span>
-                    <input type="text" class="option-input-inline" value="${opt.text}" placeholder="請填寫日期選項..." oninput="syncDateOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
+                    <input type="text" class="option-input-inline" id="date-opt-input-${idx}" value="${opt.text}" placeholder="請填寫日期選項..." oninput="syncDateOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
+                    <button class="btn-inline-edit no-print" onclick="editOptionPrompt('date', ${idx}); event.stopPropagation();" title="編輯選項">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    ${idx > 0 ? `
+                    <button class="btn-inline-delete no-print" onclick="removeOptionPrompt('date', ${idx}); event.stopPropagation();" title="刪除選項">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    ` : ''}
                 `;
                 item.onclick = () => {
                     toggleDateSelect(idx);
                 };
                 container.appendChild(item);
             });
+
+            // 螢幕上顯示的 "+ 新增選項" 按鈕
+            const addBtnRow = document.createElement('div');
+            addBtnRow.className = 'no-print';
+            addBtnRow.style.marginTop = '4px';
+            addBtnRow.innerHTML = `
+                <button class="btn-inline-add" onclick="addCustomOption('date'); event.stopPropagation();">
+                    <i class="fa-solid fa-plus"></i> 新增日期選項
+                </button>
+            `;
+            container.appendChild(addBtnRow);
         }
 
         function toggleDateSelect(idx) {
@@ -1808,13 +1874,32 @@
                 item.className = `option-item ${opt.checked ? 'checked' : ''}`;
                 item.innerHTML = `
                     <span class="checkbox-custom" onclick="toggleLocationSelect(${idx}); event.stopPropagation();"><i class="fa-solid fa-check"></i></span>
-                    <input type="text" class="option-input-inline" value="${opt.text}" placeholder="請填寫地點選項..." oninput="syncLocationOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
+                    <input type="text" class="option-input-inline" id="location-opt-input-${idx}" value="${opt.text}" placeholder="請填寫地點選項..." oninput="syncLocationOptionText(${idx}, this.value)" onclick="event.stopPropagation();" onblur="renderAll();">
+                    <button class="btn-inline-edit no-print" onclick="editOptionPrompt('location', ${idx}); event.stopPropagation();" title="編輯選項">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    ${idx > 1 ? `
+                    <button class="btn-inline-delete no-print" onclick="removeOptionPrompt('location', ${idx}); event.stopPropagation();" title="刪除選項">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    ` : ''}
                 `;
                 item.onclick = () => {
                     toggleLocationSelect(idx);
                 };
                 container.appendChild(item);
             });
+
+            // 螢幕上顯示的 "+ 新增選項" 按鈕
+            const addBtnRow = document.createElement('div');
+            addBtnRow.className = 'no-print';
+            addBtnRow.style.marginTop = '4px';
+            addBtnRow.innerHTML = `
+                <button class="btn-inline-add" onclick="addCustomOption('location'); event.stopPropagation();">
+                    <i class="fa-solid fa-plus"></i> 新增地點選項
+                </button>
+            `;
+            container.appendChild(addBtnRow);
         }
 
         function toggleLocationSelect(selectedIdx) {
@@ -1822,6 +1907,31 @@
                 opt.checked = (idx === selectedIdx);
             });
             renderAll();
+        }
+
+        function editOptionPrompt(type, idx) {
+            const options = type === 'date' ? appData.proposals.dateOptions : appData.proposals.locationOptions;
+            const oldText = options[idx].text;
+            const newText = prompt(`請輸入新的${type === 'date' ? '日期' : '地點'}：`, oldText);
+            if (newText !== null) {
+                const trimmed = newText.trim();
+                if (trimmed) {
+                    if (type === 'date') {
+                        syncDateOptionText(idx, trimmed);
+                    } else {
+                        syncLocationOptionText(idx, trimmed);
+                    }
+                    renderAll();
+                }
+            }
+        }
+
+        function removeOptionPrompt(type, idx) {
+            const options = type === 'date' ? appData.proposals.dateOptions : appData.proposals.locationOptions;
+            const text = options[idx].text;
+            if (confirm(`確定要刪除「${text}」此選項嗎？`)) {
+                removeOption(type, idx);
+            }
         }
 
         // C. 更新菜單選擇參考
@@ -2306,6 +2416,10 @@
             const page2Clone = document.getElementById('print-area-2').cloneNode(true);
 
             function sanitizeFormsForWord(container) {
+                // 0. 移除所有不列印的控制元素 (如行內編輯、刪除與新增按鈕)
+                const noPrints = container.querySelectorAll('.no-print');
+                noPrints.forEach(el => el.parentNode.removeChild(el));
+
                 // 1. 替換文字輸入框
                 const inputs = container.querySelectorAll('input[type="text"]');
                 inputs.forEach(input => {
