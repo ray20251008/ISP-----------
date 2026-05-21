@@ -1159,7 +1159,11 @@
 
                 <!-- 頁籤二：提案選項 -->
                 <div class="tab-pane" id="options-tab">
-                    <h3 style="font-size:16px; margin-bottom:15px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">提案一：社區活動票選</h3>
+                    <h3 style="font-size:16px; margin-bottom:15px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">提案一：設定</h3>
+                    <div class="form-group">
+                        <label for="edit-prop1-title"><i class="fa-solid fa-file-signature"></i> 提案一標題</label>
+                        <input type="text" id="edit-prop1-title" class="form-control" placeholder="例如：提案一：社區活動店家票選" oninput="syncProp1Title(this.value)">
+                    </div>
                     
                     <!-- 日期選項編輯 -->
                     <div class="form-group">
@@ -1179,7 +1183,12 @@
                         <button class="btn-action-small" onclick="addCustomOption('location')" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> 新增地點選項</button>
                     </div>
 
-                    <h3 style="font-size:16px; margin-bottom:15px; margin-top:25px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">提案二：點心餐點製作</h3>
+                    <h3 style="font-size:16px; margin-bottom:15px; margin-top:25px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">提案二：設定</h3>
+                    <div class="form-group">
+                        <label for="edit-prop2-title"><i class="fa-solid fa-file-signature"></i> 提案二標題</label>
+                        <input type="text" id="edit-prop2-title" class="form-control" placeholder="例如：提案二：點心餐點製作票選" oninput="syncProp2Title(this.value)">
+                    </div>
+                    
                     <!-- 點心選項編輯 -->
                     <div class="form-group">
                         <label><i class="fa-solid fa-cookie"></i> 點心選項</label>
@@ -1187,6 +1196,43 @@
                             <!-- 動態生成 -->
                         </div>
                         <button class="btn-action-small" onclick="addCustomOption('food')" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> 新增點心選項</button>
+                    </div>
+
+                    <h3 style="font-size:16px; margin-bottom:15px; margin-top:25px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">工作分配表設定</h3>
+                    <div class="form-group">
+                        <label for="edit-roles-title"><i class="fa-solid fa-file-signature"></i> 分配表標題</label>
+                        <input type="text" id="edit-roles-title" class="form-control" placeholder="例如：點心製作工作分配表" oninput="syncRolesTitle(this.value)">
+                    </div>
+
+                    <!-- 分工職責自訂 -->
+                    <div class="form-group" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:15px;">
+                        <label><i class="fa-solid fa-users-gear"></i> 組別與任務描述</label>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <!-- 備料組 -->
+                            <div style="background-color: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <label style="font-size:12px; color: #94a3b8; display:block; margin-bottom:4px;">組別一名稱 & 任務描述</label>
+                                <input type="text" id="edit-role-prep-title" class="form-control" style="margin-bottom:6px; font-size:13px;" oninput="syncRoleDetail('prep', 'title', this.value)" placeholder="組別名稱">
+                                <input type="text" id="edit-role-prep-subtitle" class="form-control" style="font-size:13px;" oninput="syncRoleDetail('prep', 'subtitle', this.value)" placeholder="任務描述">
+                            </div>
+                            <!-- 烹飪組 -->
+                            <div style="background-color: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <label style="font-size:12px; color: #94a3b8; display:block; margin-bottom:4px;">組別二名稱 & 任務描述</label>
+                                <input type="text" id="edit-role-cook-title" class="form-control" style="margin-bottom:6px; font-size:13px;" oninput="syncRoleDetail('cook', 'title', this.value)" placeholder="組別名稱">
+                                <input type="text" id="edit-role-cook-subtitle" class="form-control" style="font-size:13px;" oninput="syncRoleDetail('cook', 'subtitle', this.value)" placeholder="任務描述">
+                            </div>
+                            <!-- 組裝組 -->
+                            <div style="background-color: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <label style="font-size:12px; color: #94a3b8; display:block; margin-bottom:4px;">組別三名稱 & 任務描述</label>
+                                <input type="text" id="edit-role-assembly-title" class="form-control" style="margin-bottom:6px; font-size:13px;" oninput="syncRoleDetail('assembly', 'title', this.value)" placeholder="組別名稱">
+                                <input type="text" id="edit-role-assembly-subtitle" class="form-control" style="font-size:13px;" oninput="syncRoleDetail('assembly', 'subtitle', this.value)" placeholder="任務描述">
+                            </div>
+                            <!-- 收拾組 -->
+                            <div style="background-color: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <label style="font-size:12px; color: #94a3b8; display:block; margin-bottom:4px;">組別四名稱 & 任務描述</label>
+                                <input type="text" id="edit-role-clean-title" class="form-control" style="margin-bottom:6px; font-size:13px;" oninput="syncRoleDetail('clean', 'title', this.value)" placeholder="組別名稱">
+                                <input type="text" id="edit-role-clean-subtitle" class="form-control" style="font-size:13px;" oninput="syncRoleDetail('clean', 'subtitle', this.value)" placeholder="任務描述">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1635,6 +1681,26 @@
             document.getElementById('edit-supporter').value = appData.info.supporter;
             document.getElementById('a4-supporter').value = appData.info.supporter;
 
+            // 同步提案與工作分配自訂標題到左側輸入框
+            const editProp1 = document.getElementById('edit-prop1-title');
+            if (editProp1) editProp1.value = appData.prop1Title || '';
+            const editProp2 = document.getElementById('edit-prop2-title');
+            if (editProp2) editProp2.value = appData.prop2Title || '';
+            const editRolesTitle = document.getElementById('edit-roles-title');
+            if (editRolesTitle) editRolesTitle.value = appData.rolesTitle || '';
+
+            const rolesList = ['prep', 'cook', 'assembly', 'clean'];
+            rolesList.forEach(role => {
+                const titleInput = document.getElementById(`edit-role-${role}-title`);
+                const subtitleInput = document.getElementById(`edit-role-${role}-subtitle`);
+                if (titleInput && appData.proposals.division[role]) {
+                    titleInput.value = appData.proposals.division[role].title || '';
+                }
+                if (subtitleInput && appData.proposals.division[role]) {
+                    subtitleInput.value = appData.proposals.division[role].subtitle || '';
+                }
+            });
+
             // 3. 渲染編輯器選項表單
             renderEditorOptions();
 
@@ -1719,13 +1785,51 @@
                     document.getElementById('a4-title-display').innerText = appData.meetingTitle.split('').join(' ');
                 } else if (id.startsWith('edit-')) {
                     const field = id.replace('edit-', '');
-                    if (field.startsWith('pd-')) return; // 排除個人決定卡片
+                    if (field.startsWith('pd-') || field.startsWith('prop') || field.startsWith('role')) return; // 排除個人決定與自訂提案/角色欄位
                     appData.info[field] = e.target.value;
                     document.getElementById(`a4-${field}`).value = e.target.value;
                 }
                 saveSessionTemp();
             });
         });
+
+        // 提案標題與工作分配自訂欄位同步
+        function syncProp1Title(val) {
+            appData.prop1Title = val;
+            const a4Header = document.getElementById('a4-prop1-header');
+            if (a4Header) a4Header.innerHTML = `<i class="fa-solid fa-store"></i> ${val}`;
+            saveSessionTemp();
+        }
+
+        function syncProp2Title(val) {
+            appData.prop2Title = val;
+            const a4Header = document.getElementById('a4-prop2-header');
+            if (a4Header) a4Header.innerHTML = `<i class="fa-solid fa-cookie-bite"></i> ${val}`;
+            saveSessionTemp();
+        }
+
+        function syncRolesTitle(val) {
+            appData.rolesTitle = val;
+            const a4Badge = document.getElementById('a4-roles-badge');
+            if (a4Badge) a4Badge.innerHTML = `<i class="fa-solid fa-people-carry-box"></i> ${val}`;
+            saveSessionTemp();
+        }
+
+        function syncRoleDetail(role, field, val) {
+            if (!appData.proposals.division[role]) {
+                appData.proposals.division[role] = { name: "", text: "" };
+            }
+            appData.proposals.division[role][field] = val;
+            
+            if (field === 'title') {
+                const el = document.getElementById(`role-${role}-title`);
+                if (el) el.innerText = val;
+            } else if (field === 'subtitle') {
+                const el = document.getElementById(`role-${role}-subtitle`);
+                if (el) el.innerText = val;
+            }
+            saveSessionTemp();
+        }
 
         // --- 1. 提案選項編輯與渲染 ---
         function renderEditorOptions() {
@@ -1737,9 +1841,10 @@
                 row.style.display = 'flex';
                 row.style.gap = '6px';
                 row.innerHTML = `
-                    <input type="text" class="form-control" value="${opt.text}" oninput="updateOptionTextDirect('date', ${idx}, this.value)" onblur="renderAll()" style="flex-grow:1;">
+                    <input type="text" class="form-control" oninput="updateOptionTextDirect('date', ${idx}, this.value)" onblur="renderAll()" style="flex-grow:1;">
                     ${idx > 0 ? `<button class="btn-action-small btn-action-delete" onclick="removeOption('date', ${idx})"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                 `;
+                row.querySelector('.form-control').value = opt.text;
                 dateContainer.appendChild(row);
             });
 
@@ -1751,9 +1856,10 @@
                 row.style.display = 'flex';
                 row.style.gap = '6px';
                 row.innerHTML = `
-                    <input type="text" class="form-control" value="${opt.text}" oninput="updateOptionTextDirect('location', ${idx}, this.value)" onblur="renderAll()" style="flex-grow:1;">
+                    <input type="text" class="form-control" oninput="updateOptionTextDirect('location', ${idx}, this.value)" onblur="renderAll()" style="flex-grow:1;">
                     ${idx > 1 ? `<button class="btn-action-small btn-action-delete" onclick="removeOption('location', ${idx})"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                 `;
+                row.querySelector('.form-control').value = opt.text;
                 locContainer.appendChild(row);
             });
 
@@ -1769,13 +1875,15 @@
                 card.style.marginBottom = '8px';
                 card.innerHTML = `
                     <div style="display:flex; gap:8px; align-items:center;">
-                        <input type="text" class="form-control" value="${opt.emoji}" oninput="updateFoodEmojiDirect(${idx}, this.value)" onblur="renderAll()" placeholder="表情" style="width:50px; text-align:center;">
-                        <input type="text" class="form-control" value="${opt.text}" oninput="updateFoodTextDirect(${idx}, this.value)" onblur="renderAll()" placeholder="點心名稱" style="flex-grow:1;">
+                        <input type="text" class="form-control food-emoji-input" oninput="updateFoodEmojiDirect(${idx}, this.value)" onblur="renderAll()" placeholder="表情" style="width:50px; text-align:center;">
+                        <input type="text" class="form-control food-name-input" oninput="updateFoodTextDirect(${idx}, this.value)" onblur="renderAll()" placeholder="點心名稱" style="flex-grow:1;">
                         ${idx > 1 ? `
                         <button class="btn-action-small btn-action-delete" onclick="removeOption('food', ${idx})" style="padding: 6px 8px; margin: 0;"><i class="fa-solid fa-trash-can"></i></button>
                         ` : ''}
                     </div>
                 `;
+                card.querySelector('.food-emoji-input').value = opt.emoji;
+                card.querySelector('.food-name-input').value = opt.text;
                 foodContainer.appendChild(card);
             });
         }
@@ -1832,10 +1940,8 @@
 
         function updateFoodTextDirect(idx, val) {
             appData.proposals.foodOptions[idx].text = val;
-            const a4Inputs = document.querySelectorAll('#a4-food-container .food-title-input');
-            if (a4Inputs && a4Inputs[idx]) {
-                a4Inputs[idx].value = val;
-            }
+            const a4Input = document.getElementById(`food-opt-input-${idx}`);
+            if (a4Input) a4Input.value = val;
             saveSessionTemp();
         }
 
@@ -1848,6 +1954,7 @@
             }
             saveSessionTemp();
         }
+
 
         function addCustomOption(type) {
             if (type === 'date') {
@@ -1955,7 +2062,7 @@
                 
                 item.innerHTML = `
                     <span class="checkbox-custom" onclick="toggleDateSelect(${idx}); event.stopPropagation();"><i class="fa-solid fa-check"></i></span>
-                    <input type="text" class="option-input-inline" id="date-opt-input-${idx}" value="${opt.text}" placeholder="請填寫日期選項..." oninput="syncDateOptionText(${idx}, this.value)" onblur="renderAll();">
+                    <input type="text" class="option-input-inline" id="date-opt-input-${idx}" placeholder="請填寫日期選項..." oninput="syncDateOptionText(${idx}, this.value)" onblur="renderAll();">
                     <button class="btn-inline-edit no-print" onclick="editOptionPrompt('date', ${idx}); event.stopPropagation();" title="編輯選項">
                         <i class="fa-solid fa-pen"></i>
                     </button>
@@ -1965,6 +2072,7 @@
                     </button>
                     ` : ''}
                 `;
+                item.querySelector('.option-input-inline').value = opt.text;
                 item.onclick = (e) => {
                     if (e.target.tagName === 'INPUT' || e.target.closest('.btn-inline-edit') || e.target.closest('.btn-inline-delete')) {
                         return;
@@ -2001,7 +2109,7 @@
                 item.className = `option-item ${opt.checked ? 'checked' : ''}`;
                 item.innerHTML = `
                     <span class="checkbox-custom" onclick="toggleLocationSelect(${idx}); event.stopPropagation();"><i class="fa-solid fa-check"></i></span>
-                    <input type="text" class="option-input-inline" id="location-opt-input-${idx}" value="${opt.text}" placeholder="請填寫地點選項..." oninput="syncLocationOptionText(${idx}, this.value)" onblur="renderAll();">
+                    <input type="text" class="option-input-inline" id="location-opt-input-${idx}" placeholder="請填寫地點選項..." oninput="syncLocationOptionText(${idx}, this.value)" onblur="renderAll();">
                     <button class="btn-inline-edit no-print" onclick="editOptionPrompt('location', ${idx}); event.stopPropagation();" title="編輯選項">
                         <i class="fa-solid fa-pen"></i>
                     </button>
@@ -2011,6 +2119,7 @@
                     </button>
                     ` : ''}
                 `;
+                item.querySelector('.option-input-inline').value = opt.text;
                 item.onclick = (e) => {
                     if (e.target.tagName === 'INPUT' || e.target.closest('.btn-inline-edit') || e.target.closest('.btn-inline-delete')) {
                         return;
@@ -2193,7 +2302,7 @@
                 card.className = `food-card ${opt.checked ? 'selected' : ''}`;
                 card.innerHTML = `
                     <div class="food-emoji">${opt.emoji}</div>
-                    <input type="text" class="food-title-input food-title" value="${opt.text}" placeholder="請填寫點心名稱..." oninput="syncFoodOptionText(${idx}, this.value)" onblur="renderAll();">
+                    <input type="text" id="food-opt-input-${idx}" class="food-title-input food-title" placeholder="請填寫點心名稱..." oninput="syncFoodOptionText(${idx}, this.value)" onblur="renderAll();">
                     <div class="option-item ${opt.checked ? 'checked' : ''}">
                         <span class="checkbox-custom"><i class="fa-solid fa-check"></i></span>
                         <span style="font-weight: bold;">投這一票</span>
@@ -2209,6 +2318,7 @@
                         ` : ''}
                     </div>
                 `;
+                card.querySelector('.food-title-input').value = opt.text;
                 card.onclick = (e) => {
                     if (e.target.tagName === 'INPUT' || e.target.closest('.food-card-actions') || e.target.classList.contains('food-emoji')) {
                         return;
